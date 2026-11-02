@@ -239,3 +239,14 @@ grant execute on function public.staff_remove(uuid) to authenticated;
 -- insert into public.staff (user_id, role, name)
 -- values ('ضع-هنا-UUID-المستخدم', 'admin', 'الاسم');
 -- الأدوار: admin | editor | photographer | scorer
+
+-- ============================================================
+-- صلاحيات الجداول لـ Data API (لازمة لو "Automatically expose new tables" مطفية)
+-- الأمان الفعلي يظل في سياسات RLS أعلاه.
+-- ============================================================
+grant usage on schema public to anon, authenticated;
+grant select on public.match_state, public.goal_events, public.news, public.gallery_photos to anon, authenticated;
+grant insert, update, delete on public.match_state, public.goal_events, public.news, public.gallery_photos to authenticated;
+grant select on public.staff to authenticated;
+grant execute on function public.gallery_usage() to anon, authenticated;
+grant execute on function public.has_role(text[]) to anon, authenticated;

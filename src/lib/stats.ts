@@ -22,7 +22,57 @@ export function isDrawn(state: TournamentState): boolean {
   return state.teams.length > 0 && state.teams.every((t) => !!t.group);
 }
 
-/** الترتيب: النقاط ثم فارق الأهداف ثم الأهداف المسجلة ثم الاسم */
+/**
+ * ترتيب المجموعة حسب لائحة الدوري:
+ * 1) النقاط  2) المواجهات المباشرة بين المتساويين  3) فارق الأهداف  4) النقاط التأديبية (الأقل أفضل).
+ * وعند استمرار التعادل نستخدم الأهداف المسجلة ثم الاسم (ترتيب ثابت فقط، وليست من اللائحة).
+ * المواجهات المباشرة: جدول مصغّر من المباريات المنتهية بين المتساويين فقط، وإن بقي تعادل بين بعضهم
+ * تُطبَّق المواجهات المباشرة بينهم وحدهم من جديد.
+ */
+function rankWithTiebreakers(state: TournamentState, rows: StandingRow[]): StandingRow[] {
+  const discipline = (id: string) => state.discipline?.[id] ?? 0;
+  const name = (id: string) => teamById(state, id)?.name ?? '';
+  const completed = state.matches.filter((m) => m.status === 'completed');
+
+  const fallback = (block: StandingRow[]) =>
+    [...block].sort(
+      (x, y) =>
+        y.gd - x.gd ||
+        discipline(x.teamId) - discipline(y.teamId) ||
+        y.gf - x.gf ||
+        name(x.teamId).localeCompare(name(y.teamId), 'ar'),
+    );
+
+  const resolve = (block: StandingRow[]): StandingRow[] => {
+    if (block.length <= 1) return block;
+    const ids = new Set(block.map((r) => r.teamId));
+    const mini = new Map<string, number>(block.map((r) => [r.teamId, 0]));
+    for (const m of completed) {
+      if (!ids.has(m.homeId) || !ids.has(m.awayId)) continue;
+      if (m.homeScore > m.awayScore) mini.set(m.homeId, (mini.get(m.homeId) ?? 0) + 3);
+      else if (m.homeScore < m.awayScore) mini.set(m.awayId, (mini.get(m.awayId) ?? 0) + 3);
+      else {
+        mini.set(m.homeId, (mini.get(m.homeId) ?? 0) + 1);
+        mini.set(m.awayId, (mini.get(m.awayId) ?? 0) + 1);
+      }
+    }
+    const values = [...new Set(mini.values())].sort((a, b) => b - a);
+    if (values.length === 1) return fallback(block); // المواجهات المباشرة لم تفصل: ننتقل لفارق الأهداف
+    return values.flatMap((v) => resolve(block.filter((r) => mini.get(r.teamId) === v)));
+  };
+
+  const byPts = [...rows].sort((a, b) => b.pts - a.pts);
+  const out: StandingRow[] = [];
+  for (let i = 0; i < byPts.length; ) {
+    let j = i;
+    while (j < byPts.length && byPts[j].pts === byPts[i].pts) j++;
+    out.push(...resolve(byPts.slice(i, j)));
+    i = j;
+  }
+  return out;
+}
+
+/** الترتيب حسب لائحة الدوري (انظر rankWithTiebreakers) */
 export function computeStandings(state: TournamentState): Record<GroupId, StandingRow[]> {
   const rows = new Map<string, StandingRow>();
   for (const t of state.teams) {
@@ -49,15 +99,8 @@ export function computeStandings(state: TournamentState): Record<GroupId, Standi
         r.gd = r.gf - r.ga;
         return r;
       });
-    list.sort((x, y) => {
-      if (y.pts !== x.pts) return y.pts - x.pts;
-      if (y.gd !== x.gd) return y.gd - x.gd;
-      if (y.gf !== x.gf) return y.gf - x.gf;
-      const nx = teamById(state, x.teamId)?.name ?? '';
-      const ny = teamById(state, y.teamId)?.name ?? '';
-      return nx.localeCompare(ny, 'ar');
-    });
-    result[g] = list;
+    result[g] = rankWithTiebreakers(state, list);
+    continue;
   }
   return result;
 }
