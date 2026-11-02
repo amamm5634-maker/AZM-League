@@ -61,6 +61,8 @@ export interface TournamentState {
   matches: Match[];
   events: MatchEvent[];
   news: NewsItem[];
+  /** النقاط التأديبية لكل فريق (teamId ← نقاط؛ الأقل أفضل). تُستخدم في كسر التعادل بعد فارق الأهداف. اختياري: الغائب = 0 */
+  discipline?: Record<string, number>;
 }
 
 export interface EventInput {

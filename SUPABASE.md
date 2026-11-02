@@ -28,11 +28,11 @@
 2. في فولدر المشروع أنشئ ملف اسمه `.env.local` (انسخ `.env.example`) واكتب:
    ```
    VITE_SUPABASE_URL=https://xxxx.supabase.co
-   VITE_SUPABASE_ANON_KEY=eyJ...
+   VITE_SUPABASE_ANON_KEY=sb_publishable_...   # (أو anon key القديم eyJ...)
    ```
 3. `npm install` ثم `npm run dev` وافتح `#/admin` وسجّل الدخول بالبريد وكلمة المرور.
 
-> ⚠️ استخدم **anon key** فقط. **لا تضع service_role key** في الموقع أبداً. الـ anon key مصمم يكون ظاهر، والحماية من سياسات RLS في الملف.
+> ⚠️ استخدم **Publishable key** (أو anon key القديم) فقط. **لا تضع service_role key** في الموقع أبداً. الـ anon key مصمم يكون ظاهر، والحماية من سياسات RLS في الملف.
 
 ## 5) النشر
 `npm run build` ثم ارفع `dist` (الـ build بياخد المفاتيح من `.env.local`).
