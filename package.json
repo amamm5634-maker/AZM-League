@@ -1,0 +1,34 @@
+{
+  "name": "university-league-demo",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "check:data": "tsx scripts/check-data.ts",
+    "check:demo": "tsx scripts/check-demo.ts",
+    "check:draw": "tsx scripts/check-draw.ts",
+    "check:flow": "tsx scripts/check-admin-flow.ts",
+    "check": "npm run typecheck && npm run check:data && npm run check:demo && npm run check:draw && npm run check:flow && npm run check:bracket && npm run check:scenarios && npm run check:gallery && npm run check:staff",
+    "check:bracket": "tsx scripts/check-bracket.ts",
+    "check:scenarios": "tsx scripts/check-scenarios.ts",
+    "check:gallery": "tsx scripts/check-gallery.ts",
+    "check:staff": "tsx scripts/check-staff.ts"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "@supabase/supabase-js": "^2.45.4"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.12",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.3.3",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3",
+    "vite": "^5.4.10"
+  }
+}
