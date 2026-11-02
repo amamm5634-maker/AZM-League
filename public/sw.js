@@ -1,6 +1,6 @@
 /* دوري عزم — Service Worker: يخزّن الموقع بعد أول زيارة فيعمل بدون نت.
    عند نشر نسخة جديدة غيّر رقم VERSION ليتجدد التخزين عند المستخدمين. */
-const VERSION = 'azm-v3';
+const VERSION = 'azm-v4';
 const SHELL = `azm-shell-${VERSION}`;
 const RUNTIME = `azm-runtime-${VERSION}`;
 
@@ -51,7 +51,7 @@ self.addEventListener('fetch', (event) => {
             if (res && (res.ok || res.type === 'opaque')) cache.put(req, res.clone());
             return res;
           })
-          .catch(() => cached);
+          .catch(() => cached || Response.error());
         return cached || fresh;
       }),
     ),
