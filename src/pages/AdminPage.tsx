@@ -201,7 +201,7 @@ function Dashboard() {
   const panelRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    document.title = `لوحة الإدارة — نسخة تجريبية — ${TOURNAMENT.name}`;
+    document.title = `${repository.kind === 'local' ? 'لوحة الإدارة — نسخة تجريبية' : 'لوحة الإدارة'} — ${TOURNAMENT.name}`;
   }, []);
 
   useEffect(() => {
