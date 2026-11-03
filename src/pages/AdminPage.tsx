@@ -12,6 +12,7 @@ import { NewsAdmin } from './NewsAdmin';
 import { PhotosAdmin } from './PhotosAdmin';
 import { StaffAdmin } from './StaffAdmin';
 import { tabsForRole, type AdminTab } from '../lib/roles';
+import { GateOpening, GateScene } from '../components/Gate';
 import '../admin.css';
 
 const SESSION_KEY = 'university-league-demo:admin';
@@ -30,13 +31,34 @@ function readSession(): boolean {
 export function AdminPage() {
   const auth = useAuth();
   const [authed, setAuthed] = useState<boolean>(readSession);
+  // بوابة السياج: تنفتح بحركة بعد تسجيل دخول ناجح في هذه الجلسة (لا عند فتح الصفحة وأنت داخل أصلاً)
+  const wasOut = useRef(false);
+  const [opening, setOpening] = useState(false);
+  useEffect(() => {
+    if (!auth.enabled || auth.loading) return;
+    if (!auth.email) {
+      wasOut.current = true;
+      return;
+    }
+    if (!wasOut.current) return;
+    wasOut.current = false;
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
+    setOpening(true);
+    const t = window.setTimeout(() => setOpening(false), 1700);
+    return () => window.clearTimeout(t);
+  }, [auth.enabled, auth.loading, auth.email]);
 
   // الوضع الحي: تسجيل دخول حقيقي بالبريد وكلمة المرور وأدوار من قاعدة البيانات
   if (auth.enabled) {
     if (auth.loading) return <Loading label="جارٍ التحقق من الحساب…" />;
-    if (!auth.email) return <StaffLogin />;
+    if (!auth.email) return <GateScene><StaffLogin /></GateScene>;
     if (!auth.role) return <NoAccess email={auth.email} onLogout={auth.signOut} />;
-    return <Panel role={auth.role} who={auth.name ?? auth.email} onLogout={auth.signOut} />;
+    return (
+      <>
+        <Panel role={auth.role} who={auth.name ?? auth.email} onLogout={auth.signOut} />
+        {opening && <GateOpening />}
+      </>
+    );
   }
 
   // الوضع التجريبي: رمز ثابت (للعرض فقط)
