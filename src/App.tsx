@@ -192,6 +192,7 @@ export default function App() {
         <div className="container"><SponsorsFooter /></div>
         <div className="container row">
           <span>{TOURNAMENT.name} — {TOURNAMENT.university}</span>
+          <span>تطوير تقني: {TOURNAMENT.technicalDevelopment}</span>
           <a href="#/about">للتواصل ومعلومات الدوري</a>
         </div>
       </footer>

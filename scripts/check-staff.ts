@@ -29,9 +29,9 @@ function fakeDb(handler: (name: string, args: unknown) => { data?: unknown; erro
 async function main() {
   // ---- ما يراه كل دور ----
   expect(keys('scorer') === 'quick,results', `المسجّل يرى الميدان والنتائج فقط، لكنه يرى: ${keys('scorer')}`);
-  expect(keys('editor') === 'news,photos', `محرر الأخبار يرى الأخبار والصور، لكنه يرى: ${keys('editor')}`);
+  expect(keys('editor') === 'news,photos,messages', `محرر الأخبار يرى الأخبار والصور، لكنه يرى: ${keys('editor')}`);
   expect(keys('photographer') === 'photos', `المصوّر يرى الصور فقط، لكنه يرى: ${keys('photographer')}`);
-  expect(keys('admin') === 'quick,results,news,photos,staff', `الأدمن يرى كل شيء مع الطاقم، لكنه يرى: ${keys('admin')}`);
+  expect(keys('admin') === 'quick,results,news,photos,messages,staff', `الأدمن يرى كل شيء مع الطاقم، لكنه يرى: ${keys('admin')}`);
   for (const r of ROLES) {
     if (r !== 'admin') expect(!keys(r).includes('staff'), `الدور ${r} يجب ألا يرى تبويب الطاقم`);
     expect(!!ROLE_LABELS[r] && !!ROLE_HINTS[r], `الدور ${r} ينقصه اسم أو وصف`);

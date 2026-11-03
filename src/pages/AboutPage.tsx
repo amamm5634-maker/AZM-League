@@ -5,7 +5,6 @@ import { PageHead } from '../components/StateViews';
 
 const FAQ: { q: string; a: string }[] = [
   { q: 'متى موعد القرعة؟', a: `تُجرى القرعة يوم ${formatArabicDate(TOURNAMENT.drawDate)} بحضور ممثلي الكليات.` },
-  { q: 'كيف تشترك الكلية في الدوري؟', a: TOURNAMENT.subscriptionNote },
   { q: 'أين تقام المباريات؟', a: TOURNAMENT.venue },
   { q: 'كيف أتابع النتائج؟', a: 'تُنشر النتائج والترتيب والهدافون هنا فور انتهاء كل مباراة.' },
 ];
@@ -25,6 +24,7 @@ export function AboutPage() {
           <li><Icon name="calendar" /><span><strong>صافرة البداية:</strong> {formatArabicDate(TOURNAMENT.startDate)}</span></li>
           <li><Icon name="pin" /><span><strong>الميدان:</strong> {TOURNAMENT.venue}</span></li>
           <li><Icon name="shield" /><span><strong>الجهة المنظمة:</strong> {TOURNAMENT.organizer}</span></li>
+          <li><Icon name="info" /><span><strong>التطوير التقني:</strong> {TOURNAMENT.technicalDevelopment}</span></li>
         </ul>
       </section>
 
@@ -48,11 +48,10 @@ export function AboutPage() {
       </section>
 
       <section className="card section" aria-labelledby="about-contact">
-        <h2 id="about-contact" style={{ fontSize: '1.1rem', color: 'var(--head)', marginBottom: 10 }}>للتواصل والاشتراك</h2>
-        <p style={{ marginBottom: 10 }}>{TOURNAMENT.subscriptionNote}</p>
+        <h2 id="about-contact" style={{ fontSize: '1.1rem', color: 'var(--head)', marginBottom: 10 }}>للتواصل</h2>
         <ul className="info-list">
           <li><Icon name="mail" /><span>البريد: {contact.email}</span></li>
-          <li><Icon name="phone" /><span>الهاتف: {contact.phone}</span></li>
+          <li><Icon name="phone" /><span>الهاتف: <a href={`tel:${contact.phone}`} dir="ltr">{contact.phone}</a></span></li>
           <li><Icon name="pin" /><span>{contact.address}</span></li>
         </ul>
       </section>

@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 import type { EventInput, GalleryPhoto, MatchMessage, PredictionChoice, PredictionCounts, TournamentState } from '../types';
+=======
+import type { EventInput, GalleryPhoto, MatchMessage, TournamentState } from '../types';
+>>>>>>> 1020fc6a6507ddbfae0b9a1141625eceb1e83c39
 
 export type Result<T = void> =
   | { ok: true; data: T; message: string }
@@ -73,8 +77,11 @@ export interface TournamentRepository {
   /** للأدمن ومحرر الأخبار: الرسائل بانتظار المراجعة */
   loadPendingMessages(): Promise<MatchMessage[]>;
   reviewMessage(id: string, status: 'approved' | 'rejected'): Promise<Result>;
+<<<<<<< HEAD
 
   // ---- توقعات المباريات (صوت واحد لكل جهاز) ----
   loadPredictionCounts(matchId: string): Promise<PredictionCounts>;
   submitPrediction(matchId: string, choice: PredictionChoice, device: string): Promise<Result>;
+=======
+>>>>>>> 1020fc6a6507ddbfae0b9a1141625eceb1e83c39
 }

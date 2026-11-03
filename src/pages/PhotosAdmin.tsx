@@ -7,6 +7,7 @@ import { usePhotos } from '../lib/usePhotos';
 import { useData } from '../store';
 import { ConfirmDialog } from '../components/ConfirmDialog';
 import { EmptyState } from '../components/StateViews';
+import { ROUND_LABELS } from '../data/config';
 
 type Notice = { type: 'ok' | 'error'; text: string };
 
@@ -80,6 +81,21 @@ export function PhotosAdmin({ canDelete }: { canDelete: boolean }) {
     } finally {
       setBusy(false);
       setDeleteId(null);
+    }
+  };
+
+  const pickRound = async (id: string, value: string) => {
+    const round = value ? Number(value) : null;
+    setBusy(true);
+    try {
+      const res = await repository.setRoundPhoto(id, round);
+      if (res.ok) {
+        // يحدّث القائمة محلياً: صورة واحدة فقط لكل جولة
+        setPhotos((prev) => prev.map((p) => (p.id === id ? { ...p, roundPick: round ?? undefined } : round !== null && p.roundPick === round ? { ...p, roundPick: undefined } : p)));
+      }
+      setNotice(res.ok ? { type: 'ok', text: res.message } : { type: 'error', text: res.error });
+    } finally {
+      setBusy(false);
     }
   };
 
@@ -163,6 +179,14 @@ export function PhotosAdmin({ canDelete }: { canDelete: boolean }) {
                       {p.caption && <strong>{p.caption}</strong>}
                       <span>{m ? matchLabel(state, m) : 'بدون مباراة'} · {formatArabicDate(p.createdAt.slice(0, 10))}</span>
                     </div>
+                    {canDelete && (
+                      <select aria-label="صورة الجولة" className="round-select" value={p.roundPick ?? ''} onChange={(e) => void pickRound(p.id, e.target.value)} disabled={busy}>
+                        <option value="">ليست صورة جولة</option>
+                        {Object.entries(ROUND_LABELS).map(([n, label]) => (
+                          <option key={n} value={n}>صورة {label}</option>
+                        ))}
+                      </select>
+                    )}
                     {canDelete && (
                       <button type="button" className="btn btn-danger" onClick={() => setDeleteId(p.id)} disabled={busy}>حذف</button>
                     )}

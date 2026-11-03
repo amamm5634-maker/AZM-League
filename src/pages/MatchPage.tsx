@@ -7,7 +7,10 @@ import { EmptyState } from '../components/StateViews';
 import { Icon } from '../components/Icon';
 import { PhotoGrid } from '../components/PhotoGrid';
 import { MatchMessages } from '../components/MatchMessages';
+<<<<<<< HEAD
 import { MatchPrediction } from '../components/MatchPrediction';
+=======
+>>>>>>> 1020fc6a6507ddbfae0b9a1141625eceb1e83c39
 import { ShareButton } from '../components/ShareButton';
 import { ShareImageButton } from '../components/ShareImageButton';
 import { TeamBadge } from '../components/TeamBadge';
@@ -112,8 +115,11 @@ export function MatchPage({ matchId }: { matchId: string }) {
         </section>
       )}
 
+<<<<<<< HEAD
       <MatchPrediction match={match} home={home} away={away} />
 
+=======
+>>>>>>> 1020fc6a6507ddbfae0b9a1141625eceb1e83c39
       <MatchMessages matchId={match.id} />
 
       <div className="section" style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, flexWrap: 'wrap' }}>

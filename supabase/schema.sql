@@ -352,6 +352,7 @@ end;
 $$;
 revoke all on function public.submit_match_message(text, text, text, text) from public;
 grant execute on function public.submit_match_message(text, text, text, text) to anon, authenticated;
+<<<<<<< HEAD
 
 -- ---------- 6و) توقعات المباريات ----------
 -- توقعات المباريات: صوت واحد لكل جهاز في كل مباراة (تسلية، ليست مسابقة بجوائز). شغّله مرة واحدة.
@@ -407,3 +408,5 @@ $$;
 
 revoke all on function public.submit_prediction(text, text, text), public.prediction_counts(text) from public;
 grant execute on function public.submit_prediction(text, text, text), public.prediction_counts(text) to anon, authenticated;
+=======
+>>>>>>> 1020fc6a6507ddbfae0b9a1141625eceb1e83c39
