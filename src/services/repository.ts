@@ -1,4 +1,4 @@
-import type { EventInput, GalleryPhoto, TournamentState } from '../types';
+import type { EventInput, GalleryPhoto, MatchMessage, PredictionChoice, PredictionCounts, TournamentState } from '../types';
 
 export type Result<T = void> =
   | { ok: true; data: T; message: string }
@@ -60,4 +60,21 @@ export interface TournamentRepository {
   deletePhoto(id: string): Promise<Result>;
   /** عدد الصور وحجمها الكلي (null إن لم يتوفر) */
   photoUsage(): Promise<PhotoUsage | null>;
+  /** صور الجولات المختارة (واحدة لكل جولة على الأكثر) */
+  loadRoundPhotos(): Promise<GalleryPhoto[]>;
+  /** اختيار صورة الجولة (round = null لإلغاء الاختيار). للأدمن ومحرر الأخبار */
+  setRoundPhoto(id: string, round: number | null): Promise<Result>;
+
+  // ---- مدرجات المباراة ----
+  /** الرسائل المعتمدة لمباراة (للزوار) */
+  loadMessages(matchId: string): Promise<MatchMessage[]>;
+  /** إرسال رسالة (تظهر بعد موافقة الإدارة). device: معرّف عشوائي محفوظ في المتصفح لتقييد التكرار */
+  submitMessage(matchId: string, author: string, body: string, device: string): Promise<Result>;
+  /** للأدمن ومحرر الأخبار: الرسائل بانتظار المراجعة */
+  loadPendingMessages(): Promise<MatchMessage[]>;
+  reviewMessage(id: string, status: 'approved' | 'rejected'): Promise<Result>;
+
+  // ---- توقعات المباريات (صوت واحد لكل جهاز) ----
+  loadPredictionCounts(matchId: string): Promise<PredictionCounts>;
+  submitPrediction(matchId: string, choice: PredictionChoice, device: string): Promise<Result>;
 }

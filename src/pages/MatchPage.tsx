@@ -6,6 +6,8 @@ import { useData } from '../store';
 import { EmptyState } from '../components/StateViews';
 import { Icon } from '../components/Icon';
 import { PhotoGrid } from '../components/PhotoGrid';
+import { MatchMessages } from '../components/MatchMessages';
+import { MatchPrediction } from '../components/MatchPrediction';
 import { ShareButton } from '../components/ShareButton';
 import { ShareImageButton } from '../components/ShareImageButton';
 import { TeamBadge } from '../components/TeamBadge';
@@ -109,6 +111,10 @@ export function MatchPage({ matchId }: { matchId: string }) {
           <PhotoGrid photos={photos} />
         </section>
       )}
+
+      <MatchPrediction match={match} home={home} away={away} />
+
+      <MatchMessages matchId={match.id} />
 
       <div className="section" style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, flexWrap: 'wrap' }}>
         <ShareImageButton match={match} />

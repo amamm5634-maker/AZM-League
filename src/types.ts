@@ -102,4 +102,20 @@ export interface GalleryPhoto {
   createdAt: string; // ISO
   width?: number;
   height?: number;
+  /** رقم الجولة التي اختيرت هذه الصورة لها كـ«صورة الجولة» (1 إلى 3) */
+  roundPick?: number;
 }
+
+/** رسالة جمهور في «مدرجات المباراة» */
+export interface MatchMessage {
+  id: string;
+  matchId: string;
+  author: string;
+  body: string;
+  status: 'pending' | 'approved' | 'rejected';
+  createdAt: string; // ISO
+}
+
+/** اختيار التوقع: فوز صاحب الأرض، تعادل، أو فوز الضيف */
+export type PredictionChoice = 'home' | 'draw' | 'away';
+export type PredictionCounts = Record<PredictionChoice, number>;
