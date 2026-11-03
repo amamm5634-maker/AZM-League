@@ -49,7 +49,7 @@ export const ROSTERS: Record<string, RosterEntry[]> = {
     { name: 'مجتبى الليدر', number: 24, position: 'وسط' },
     { name: 'البشرى الصادق', number: 25, position: 'جناح' },
     { name: 'الطيب خلف الله', number: 26, position: 'جناح' },
-    { name: 'فيصل حسن', number: 27, position: 'جناح' },
+    { name: 'فيصل حسن', number: 27, position: 'جناح', photo: 'players/faisal-hassan.jpg' },
     { name: 'عمر نصر الدين', number: 28, position: 'جناح' },
     { name: 'متوكل عبد الرحيم', number: 29, position: 'جناح' },
     { name: 'عبد المنعم عاطف', number: 30, position: 'مهاجم' },
