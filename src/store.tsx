@@ -74,7 +74,8 @@ export function TournamentProvider({ children }: { children: ReactNode }) {
         setOffline(false);
         if (repository.kind === 'supabase') saveSnapshot(s);
       })
-      .catch(() => {
+      .catch((e) => {
+        console.warn('[azm] تعذّر تحميل البيانات من الخادم:', e);
         const cached = repository.kind === 'supabase' ? readSnapshot() : null;
         if (cached) {
           setState(cached);
@@ -107,7 +108,7 @@ export function TournamentProvider({ children }: { children: ReactNode }) {
           setOffline(false);
           saveSnapshot(s);
         })
-        .catch(() => undefined);
+        .catch((e) => console.warn('[azm] فشل التحديث الصامت:', e));
     }, 10000);
     return () => window.clearInterval(id);
   }, []);
