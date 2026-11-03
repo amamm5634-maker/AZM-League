@@ -161,7 +161,7 @@ main { padding-block: 18px 40px; min-height: 60vh; }
   border: 1px solid var(--line); box-shadow: var(--shadow);
 }
 /* صورة الملعب من الأعلى خلف كل شيء، بتعتيم ليبقى النص مقروءاً */
-.hero-photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 45%; z-index: -4; opacity: 0.8; filter: saturate(0.95) brightness(0.85) contrast(1.05); pointer-events: none; }
+.hero-photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 45%; z-index: -4; opacity: 0.55; filter: saturate(0.9) brightness(0.8) contrast(1.05); pointer-events: none; }
 .hero-photo ~ .hero-field { opacity: 0.55; }
 .hero:has(.hero-photo)::before { content: ''; position: absolute; inset: 0; z-index: -3; pointer-events: none; background: linear-gradient(180deg, rgba(5, 11, 17, 0.55) 0%, rgba(5, 11, 17, 0.2) 45%, rgba(5, 11, 17, 0.7) 100%); }
 /* الأرض بمنظور حقيقي */
