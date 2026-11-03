@@ -20,7 +20,6 @@ import { PlayerCard } from '../components/PlayerCard';
 import { EmptyState } from '../components/StateViews';
 import { TeamBadge } from '../components/TeamBadge';
 import { RollingBall } from '../components/RollingBall';
-import { HeroDust } from '../components/HeroDust';
 import { SponsorsSection } from '../components/Sponsors';
 
 const QUICK_LINKS: { href: string; title: string; hint: string; icon: IconName }[] = [
@@ -56,6 +55,8 @@ export function HomePage() {
   const news = [...state.news].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 3);
   const target = countdownTarget();
   const drawn = isDrawn(state);
+  const hour = new Date().getHours();
+  const isNight = hour >= 18 || hour < 6;
 
   const start = new Date(`${TOURNAMENT.startDate}T12:00:00`);
   const startMonth = start.toLocaleDateString('ar-EG-u-nu-latn', { month: 'long' });
@@ -71,10 +72,7 @@ export function HomePage() {
   return (
     <>
       <section className="hero" aria-labelledby="hero-title">
-        <img className="hero-photo" src={`${import.meta.env.BASE_URL}images/hero-pitch.jpg`} alt="" width={1280} height={960} decoding="async" fetchPriority="high" aria-hidden="true" />
-        <i className="beam b1" aria-hidden="true" />
-        <i className="beam b2" aria-hidden="true" />
-        <HeroDust />
+        <img className="hero-photo" src={`${import.meta.env.BASE_URL}images/field-aerial.jpg`} alt="" width={1280} height={960} decoding="async" fetchPriority="high" aria-hidden="true" />
         <div className="hero-date" aria-hidden="true">
           <b>{start.getDate()}</b>
           <span>{startMonth}</span>
@@ -184,7 +182,8 @@ export function HomePage() {
         </section>
       )}
 
-      <section className="section" aria-labelledby="life-title">
+      <section className="section league-life" aria-labelledby="life-title">
+        {isNight && <img className="league-floodlight" src={`${import.meta.env.BASE_URL}images/floodlight-night.jpg`} alt="" aria-hidden="true" />}
         <div className="section-title"><h2 id="life-title">حياة الدوري</h2></div>
         <ol className="timeline">
           {LIFE.map((l) => (
@@ -215,6 +214,7 @@ export function HomePage() {
         <div className="news-list">
           {news.map((n) => (
             <article key={n.id} className="card news-item">
+              {n.image && <img className="news-img" src={`${import.meta.env.BASE_URL}${n.image}`} alt="" loading="lazy" />}
               <div className="meta">
                 <span className="chip">{n.tag}</span>
                 <span>{formatArabicDate(n.date)}</span>
