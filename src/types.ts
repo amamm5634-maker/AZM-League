@@ -104,19 +104,6 @@ export interface GalleryPhoto {
   height?: number;
   /** رقم الجولة التي اختيرت هذه الصورة لها كـ«صورة الجولة» (1 إلى 3) */
   roundPick?: number;
-<<<<<<< HEAD
-=======
-}
-
-/** رسالة جمهور في «مدرجات المباراة» */
-export interface MatchMessage {
-  id: string;
-  matchId: string;
-  author: string;
-  body: string;
-  status: 'pending' | 'approved' | 'rejected';
-  createdAt: string; // ISO
->>>>>>> 1020fc6a6507ddbfae0b9a1141625eceb1e83c39
 }
 
 /** رسالة جمهور في «مدرجات المباراة» */

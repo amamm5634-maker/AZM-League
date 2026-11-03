@@ -1,9 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-<<<<<<< HEAD
 import type { EventInput, GalleryPhoto, Match, MatchEvent, MatchMessage, NewsItem, PredictionChoice, PredictionCounts, TournamentState } from '../types';
-=======
-import type { EventInput, GalleryPhoto, Match, MatchEvent, MatchMessage, NewsItem, TournamentState } from '../types';
->>>>>>> 1020fc6a6507ddbfae0b9a1141625eceb1e83c39
 import { buildSeed } from '../data/seed';
 import { adjustScore } from '../lib/scoring';
 import { validateEventInput, validateScore } from '../lib/validation';
@@ -327,7 +323,6 @@ export class SupabaseRepository implements TournamentRepository {
     return ((data ?? []) as PhotoRow[]).map((r) => this.toPhoto(r));
   }
 
-<<<<<<< HEAD
   async loadPredictionCounts(matchId: string): Promise<PredictionCounts> {
     const { data, error } = await this.db.rpc('prediction_counts', { p_match: matchId });
     if (error) throw new Error(error.message);
@@ -348,8 +343,6 @@ export class SupabaseRepository implements TournamentRepository {
     return { ok: true, data: undefined, message: 'تم تسجيل توقعك!' };
   }
 
-=======
->>>>>>> 1020fc6a6507ddbfae0b9a1141625eceb1e83c39
   private toMessage(r: MessageRow): MatchMessage {
     return { id: r.id, matchId: r.match_id, author: r.author, body: r.body, status: r.status, createdAt: r.created_at };
   }
