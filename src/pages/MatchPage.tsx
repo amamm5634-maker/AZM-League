@@ -7,6 +7,7 @@ import { EmptyState } from '../components/StateViews';
 import { Icon } from '../components/Icon';
 import { PhotoGrid } from '../components/PhotoGrid';
 import { MatchMessages } from '../components/MatchMessages';
+import { MatchPrediction } from '../components/MatchPrediction';
 import { ShareButton } from '../components/ShareButton';
 import { ShareImageButton } from '../components/ShareImageButton';
 import { TeamBadge } from '../components/TeamBadge';
@@ -110,6 +111,9 @@ export function MatchPage({ matchId }: { matchId: string }) {
           <PhotoGrid photos={photos} />
         </section>
       )}
+
+      {/* key: عند الانتقال لمباراة أخرى بدون إعادة تحميل يبدأ المكوّن من جديد (وإلا يظهر تصويتك السابق على المباراة الجديدة) */}
+      <MatchPrediction key={match.id} match={match} home={home} away={away} />
 
       <MatchMessages matchId={match.id} />
 

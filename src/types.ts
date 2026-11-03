@@ -115,3 +115,7 @@ export interface MatchMessage {
   status: 'pending' | 'approved' | 'rejected';
   createdAt: string; // ISO
 }
+
+/** اختيار التوقع: فوز صاحب الأرض، تعادل، أو فوز الضيف */
+export type PredictionChoice = 'home' | 'draw' | 'away';
+export type PredictionCounts = Record<PredictionChoice, number>;

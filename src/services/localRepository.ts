@@ -1,4 +1,4 @@
-import type { EventInput, GalleryPhoto, Match, MatchEvent, MatchMessage, TournamentState } from '../types';
+import type { EventInput, GalleryPhoto, Match, MatchEvent, MatchMessage, PredictionChoice, PredictionCounts, TournamentState } from '../types';
 import { buildSeed } from '../data/seed';
 import { validateEventInput, validateScore } from '../lib/validation';
 import { adjustScore } from '../lib/scoring';
@@ -201,6 +201,14 @@ export class LocalStorageRepository implements TournamentRepository {
 
   async loadRoundPhotos(): Promise<GalleryPhoto[]> {
     return [];
+  }
+
+  async loadPredictionCounts(_matchId: string): Promise<PredictionCounts> {
+    return { home: 0, draw: 0, away: 0 };
+  }
+
+  async submitPrediction(_m: string, _c: PredictionChoice, _d: string): Promise<Result> {
+    return { ok: false, error: 'التوقعات تتطلب ربط Supabase.' };
   }
 
   async loadMessages(_matchId: string): Promise<MatchMessage[]> {

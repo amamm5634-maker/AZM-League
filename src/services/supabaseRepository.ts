@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { EventInput, GalleryPhoto, Match, MatchEvent, MatchMessage, NewsItem, TournamentState } from '../types';
+import type { EventInput, GalleryPhoto, Match, MatchEvent, MatchMessage, NewsItem, PredictionChoice, PredictionCounts, TournamentState } from '../types';
 import { buildSeed } from '../data/seed';
 import { adjustScore } from '../lib/scoring';
 import { validateEventInput, validateScore } from '../lib/validation';
@@ -321,6 +321,27 @@ export class SupabaseRepository implements TournamentRepository {
       .order('round_pick', { ascending: true });
     if (error) throw new Error(error.message);
     return ((data ?? []) as PhotoRow[]).map((r) => this.toPhoto(r));
+  }
+
+  async loadPredictionCounts(matchId: string): Promise<PredictionCounts> {
+    const { data, error } = await this.db.rpc('prediction_counts', { p_match: matchId });
+    if (error) throw new Error(error.message);
+    const out: PredictionCounts = { home: 0, draw: 0, away: 0 };
+    for (const r of (data ?? []) as { choice: PredictionChoice; n: number | string }[]) {
+      if (r.choice in out) out[r.choice] = Number(r.n);
+    }
+    return out;
+  }
+
+  async submitPrediction(matchId: string, choice: PredictionChoice, device: string): Promise<Result> {
+    const { error } = await this.db.rpc('submit_prediction', { p_match: matchId, p_choice: choice, p_device: device });
+    if (error) {
+      if (/already_voted/.test(error.message)) return { ok: true, data: undefined, message: 'سبق أن سجّلت توقعك لهذه المباراة.' };
+      if (/closed/.test(error.message)) return { ok: false, error: 'أُغلق التوقع: بدأت المباراة.' };
+      if (/full/.test(error.message)) return { ok: false, error: 'وصل عدد التوقعات لهذه المباراة إلى الحد الأقصى.' };
+      return { ok: false, error: 'تعذّر تسجيل توقعك. حاول لاحقاً.' };
+    }
+    return { ok: true, data: undefined, message: 'تم تسجيل توقعك!' };
   }
 
   private toMessage(r: MessageRow): MatchMessage {
