@@ -4,6 +4,18 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#050b11" />
+    <script>
+      // تنظيف Service Workers القديمة التي قد تعيد ملفات بناء غير موجودة.
+      // يجري مرة واحدة ثم يعيد فتح الصفحة بالنسخة الجديدة.
+      if ('serviceWorker' in navigator && navigator.serviceWorker.controller && !sessionStorage.getItem('azm-sw-cleaned')) {
+        sessionStorage.setItem('azm-sw-cleaned', '1');
+        navigator.serviceWorker.getRegistrations()
+          .then((registrations) => Promise.all(registrations.map((registration) => registration.unregister())))
+          .then(() => caches.keys())
+          .then((keys) => Promise.all(keys.map((key) => caches.delete(key))))
+          .finally(() => window.location.reload());
+      }
+    </script>
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
     <link rel="apple-touch-icon" href="icons/icon-192.png" />
