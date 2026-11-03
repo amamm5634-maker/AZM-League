@@ -30,7 +30,7 @@ export const ROSTERS: Record<string, RosterEntry[]> = {
     { name: 'مصطفى عبد القادر', number: 5, position: 'مدافع' },
     { name: 'أحمد محمد خالد', number: 6, position: 'مدافع' },
     { name: 'أحمد أبو عبيده', number: 7, position: 'مدافع' },
-    { name: 'أواب', number: 8, position: 'مدافع' },
+    { name: 'أواب', number: 8, position: 'مدافع', photo: 'players/awab.jpg' },
     { name: 'أكرم', number: 9, position: 'مدافع' },
     { name: 'معاوية زين العابدين', number: 10, position: 'مدافع' },
     { name: 'محمد يوسف', number: 11, position: 'مدافع' },
