@@ -11,6 +11,7 @@ import { QuickScorer } from './QuickScorer';
 import { NewsAdmin } from './NewsAdmin';
 import { PhotosAdmin } from './PhotosAdmin';
 import { StaffAdmin } from './StaffAdmin';
+import { MessagesAdmin } from './MessagesAdmin';
 import { tabsForRole, type AdminTab } from '../lib/roles';
 import { GateOpening, GateScene } from '../components/Gate';
 import '../admin.css';
@@ -147,6 +148,8 @@ function Panel({ role, who, onLogout }: { role: Role; who: string; onLogout: () 
         <NewsAdmin />
       ) : tab === 'photos' ? (
         <PhotosAdmin canDelete={role === 'admin' || role === 'editor'} />
+      ) : tab === 'messages' ? (
+        <MessagesAdmin />
       ) : tab === 'staff' ? (
         <StaffAdmin />
       ) : tab === 'quick' ? (

@@ -619,3 +619,16 @@ a.sponsor:hover { background: rgba(255, 255, 255, 0.12); transform: translateY(-
 .round-picks img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .round-picks .rp-badge { position: absolute; top: 8px; inset-inline-start: 8px; background: var(--award, #d4af37); color: #1a1405; font-weight: 800; font-size: 0.78rem; padding: 3px 10px; border-radius: 999px; }
 .round-picks .rp-cap { position: absolute; inset-inline: 0; bottom: 0; padding: 18px 10px 8px; text-align: start; color: #fff; font-size: 0.85rem; background: linear-gradient(transparent, rgba(0, 0, 0, 0.75)); }
+
+/* ---------- مدرجات المباراة ---------- */
+.stands-form { display: grid; gap: 10px; }
+.stands-form textarea { width: 100%; resize: vertical; min-height: 64px; font: inherit; }
+.stands-notice { font-weight: 700; }
+.stands-notice.ok { color: var(--lime); }
+.stands-notice.error { color: var(--danger, #ff6b6b); }
+.stands-list { list-style: none; display: grid; gap: 8px; margin-top: 12px; }
+.stands-list li { padding: 12px 14px; }
+.stands-list p { margin: 0 0 4px; overflow-wrap: anywhere; }
+.stands-list small { color: var(--muted); }
+.field textarea { width: 100%; padding: 10px 12px; border: 1px solid var(--line-2); border-radius: 10px; background: var(--ink-2); color: var(--text); }
+.field textarea:focus { border-color: var(--lime); outline: none; box-shadow: 0 0 0 3px rgba(184, 242, 58, 0.2); }

@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { EventInput, GalleryPhoto, Match, MatchEvent, NewsItem, TournamentState } from '../types';
+import type { EventInput, GalleryPhoto, Match, MatchEvent, MatchMessage, NewsItem, TournamentState } from '../types';
 import { buildSeed } from '../data/seed';
 import { adjustScore } from '../lib/scoring';
 import { validateEventInput, validateScore } from '../lib/validation';
@@ -32,6 +32,7 @@ interface PhotoRow {
   created_at: string;
   round_pick?: number | null;
 }
+interface MessageRow { id: string; match_id: string; author: string; body: string; status: MatchMessage['status']; created_at: string }
 interface NewsRow { id: string; title: string; summary: string; tag: string; image_url: string | null; published_at: string }
 
 /**
@@ -320,6 +321,49 @@ export class SupabaseRepository implements TournamentRepository {
       .order('round_pick', { ascending: true });
     if (error) throw new Error(error.message);
     return ((data ?? []) as PhotoRow[]).map((r) => this.toPhoto(r));
+  }
+
+  private toMessage(r: MessageRow): MatchMessage {
+    return { id: r.id, matchId: r.match_id, author: r.author, body: r.body, status: r.status, createdAt: r.created_at };
+  }
+
+  async loadMessages(matchId: string): Promise<MatchMessage[]> {
+    const { data, error } = await this.db
+      .from('match_messages')
+      .select('id,match_id,author,body,status,created_at')
+      .eq('match_id', matchId)
+      .eq('status', 'approved')
+      .order('created_at', { ascending: false })
+      .limit(40);
+    if (error) throw new Error(error.message);
+    return ((data ?? []) as MessageRow[]).map((r) => this.toMessage(r));
+  }
+
+  async submitMessage(matchId: string, author: string, body: string, device: string): Promise<Result> {
+    const { error } = await this.db.rpc('submit_match_message', { p_match: matchId, p_author: author, p_body: body, p_device: device });
+    if (error) {
+      if (/rate_limited/.test(error.message)) return { ok: false, error: 'أرسلت رسائل كثيرة. انتظر قليلاً ثم حاول مرة أخرى.' };
+      if (/invalid_body/.test(error.message)) return { ok: false, error: 'الرسالة يجب أن تكون بين 3 و140 حرفاً.' };
+      return { ok: false, error: 'تعذّر إرسال الرسالة. حاول لاحقاً.' };
+    }
+    return { ok: true, data: undefined, message: 'وصلت رسالتك! ستظهر في المدرجات بعد موافقة الإدارة.' };
+  }
+
+  async loadPendingMessages(): Promise<MatchMessage[]> {
+    const { data, error } = await this.db
+      .from('match_messages')
+      .select('id,match_id,author,body,status,created_at')
+      .eq('status', 'pending')
+      .order('created_at', { ascending: true })
+      .limit(100);
+    if (error) throw new Error(error.message);
+    return ((data ?? []) as MessageRow[]).map((r) => this.toMessage(r));
+  }
+
+  async reviewMessage(id: string, status: 'approved' | 'rejected'): Promise<Result> {
+    const { error } = await this.db.from('match_messages').update({ status }).eq('id', id);
+    if (error) return fail(error, 'تعذّر حفظ القرار.');
+    return { ok: true, data: undefined, message: status === 'approved' ? 'تم قبول الرسالة.' : 'تم رفض الرسالة.' };
   }
 
   async setRoundPhoto(id: string, round: number | null): Promise<Result> {

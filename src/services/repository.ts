@@ -1,4 +1,4 @@
-import type { EventInput, GalleryPhoto, TournamentState } from '../types';
+import type { EventInput, GalleryPhoto, MatchMessage, TournamentState } from '../types';
 
 export type Result<T = void> =
   | { ok: true; data: T; message: string }
@@ -64,4 +64,13 @@ export interface TournamentRepository {
   loadRoundPhotos(): Promise<GalleryPhoto[]>;
   /** اختيار صورة الجولة (round = null لإلغاء الاختيار). للأدمن ومحرر الأخبار */
   setRoundPhoto(id: string, round: number | null): Promise<Result>;
+
+  // ---- مدرجات المباراة ----
+  /** الرسائل المعتمدة لمباراة (للزوار) */
+  loadMessages(matchId: string): Promise<MatchMessage[]>;
+  /** إرسال رسالة (تظهر بعد موافقة الإدارة). device: معرّف عشوائي محفوظ في المتصفح لتقييد التكرار */
+  submitMessage(matchId: string, author: string, body: string, device: string): Promise<Result>;
+  /** للأدمن ومحرر الأخبار: الرسائل بانتظار المراجعة */
+  loadPendingMessages(): Promise<MatchMessage[]>;
+  reviewMessage(id: string, status: 'approved' | 'rejected'): Promise<Result>;
 }

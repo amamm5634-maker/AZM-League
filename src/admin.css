@@ -145,3 +145,8 @@
 @keyframes gate-fade { to { opacity: 0; } }
 
 .round-select { max-width: 170px; }
+
+.msg-queue { list-style: none; display: grid; gap: 10px; margin-top: 12px; }
+.msg-item { display: grid; gap: 8px; padding: 12px; border: 1px solid var(--line); border-radius: 12px; }
+.msg-body { margin: 0 0 4px; font-weight: 600; overflow-wrap: anywhere; }
+.msg-item .row { display: flex; flex-wrap: wrap; gap: 8px; }
