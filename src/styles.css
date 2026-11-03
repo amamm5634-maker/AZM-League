@@ -610,3 +610,12 @@ a.sponsor:hover { background: rgba(255, 255, 255, 0.12); transform: translateY(-
   .nav a[aria-current='page']::after { inset-inline: 8px; }
   .nav-cta { display: none; }
 }
+
+/* ---------- صورة الجولة (المعرض) ---------- */
+.round-picks { margin-bottom: 22px; }
+.round-picks h2 { font-size: 1.15rem; margin-bottom: 10px; }
+.round-picks ul { list-style: none; display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr)); }
+.round-picks button { position: relative; display: block; width: 100%; padding: 0; border: 1px solid var(--award, #d4af37); border-radius: 14px; overflow: hidden; background: #000; cursor: pointer; aspect-ratio: 4 / 3; }
+.round-picks img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.round-picks .rp-badge { position: absolute; top: 8px; inset-inline-start: 8px; background: var(--award, #d4af37); color: #1a1405; font-weight: 800; font-size: 0.78rem; padding: 3px 10px; border-radius: 999px; }
+.round-picks .rp-cap { position: absolute; inset-inline: 0; bottom: 0; padding: 18px 10px 8px; text-align: start; color: #fff; font-size: 0.85rem; background: linear-gradient(transparent, rgba(0, 0, 0, 0.75)); }

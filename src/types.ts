@@ -102,4 +102,6 @@ export interface GalleryPhoto {
   createdAt: string; // ISO
   width?: number;
   height?: number;
+  /** رقم الجولة التي اختيرت هذه الصورة لها كـ«صورة الجولة» (1 إلى 3) */
+  roundPick?: number;
 }

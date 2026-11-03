@@ -143,3 +143,5 @@
 @keyframes gate-slide-r { to { transform: translateX(102%); } }
 @keyframes gate-lock-out { to { opacity: 0; transform: translateY(14px) scale(0.9); } }
 @keyframes gate-fade { to { opacity: 0; } }
+
+.round-select { max-width: 170px; }

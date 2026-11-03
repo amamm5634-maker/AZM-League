@@ -60,4 +60,8 @@ export interface TournamentRepository {
   deletePhoto(id: string): Promise<Result>;
   /** عدد الصور وحجمها الكلي (null إن لم يتوفر) */
   photoUsage(): Promise<PhotoUsage | null>;
+  /** صور الجولات المختارة (واحدة لكل جولة على الأكثر) */
+  loadRoundPhotos(): Promise<GalleryPhoto[]>;
+  /** اختيار صورة الجولة (round = null لإلغاء الاختيار). للأدمن ومحرر الأخبار */
+  setRoundPhoto(id: string, round: number | null): Promise<Result>;
 }

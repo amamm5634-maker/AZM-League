@@ -30,6 +30,7 @@ interface PhotoRow {
   width: number | null;
   height: number | null;
   created_at: string;
+  round_pick?: number | null;
 }
 interface NewsRow { id: string; title: string; summary: string; tag: string; image_url: string | null; published_at: string }
 
@@ -286,14 +287,19 @@ export class SupabaseRepository implements TournamentRepository {
     const offset = Math.max(query.offset ?? 0, 0);
     let q = this.db
       .from('gallery_photos')
-      .select('id,path,thumb_path,match_id,caption,width,height,created_at')
+      .select('id,path,thumb_path,match_id,caption,width,height,created_at,round_pick')
       .order('created_at', { ascending: false });
     if (query.matchId) q = q.eq('match_id', query.matchId);
     // نطلب صورة زيادة لنعرف هل توجد صفحة تالية بدون استعلام عدّ منفصل
     const { data, error } = await q.range(offset, offset + limit);
     if (error) throw new Error(error.message);
     const rows = (data ?? []) as PhotoRow[];
-    const photos: GalleryPhoto[] = rows.slice(0, limit).map((r) => ({
+    const photos: GalleryPhoto[] = rows.slice(0, limit).map((r) => this.toPhoto(r));
+    return { photos, hasMore: rows.length > limit };
+  }
+
+  private toPhoto(r: PhotoRow): GalleryPhoto {
+    return {
       id: r.id,
       url: this.publicUrl(r.path),
       thumb: this.publicUrl(r.thumb_path),
@@ -302,8 +308,24 @@ export class SupabaseRepository implements TournamentRepository {
       createdAt: r.created_at,
       width: r.width ?? undefined,
       height: r.height ?? undefined,
-    }));
-    return { photos, hasMore: rows.length > limit };
+      roundPick: r.round_pick ?? undefined,
+    };
+  }
+
+  async loadRoundPhotos(): Promise<GalleryPhoto[]> {
+    const { data, error } = await this.db
+      .from('gallery_photos')
+      .select('id,path,thumb_path,match_id,caption,width,height,created_at,round_pick')
+      .not('round_pick', 'is', null)
+      .order('round_pick', { ascending: true });
+    if (error) throw new Error(error.message);
+    return ((data ?? []) as PhotoRow[]).map((r) => this.toPhoto(r));
+  }
+
+  async setRoundPhoto(id: string, round: number | null): Promise<Result> {
+    const { error } = await this.db.rpc('set_round_photo', { p_photo: id, p_round: round });
+    if (error) return fail(error, 'تعذّر حفظ صورة الجولة.');
+    return { ok: true, data: undefined, message: round ? `تم اختيار الصورة لتكون صورة الجولة ${round}.` : 'أُلغي اختيار صورة الجولة.' };
   }
 
   async addPhoto(input: PhotoInput): Promise<Result<GalleryPhoto>> {

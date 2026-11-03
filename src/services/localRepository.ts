@@ -198,4 +198,12 @@ export class LocalStorageRepository implements TournamentRepository {
   async photoUsage(): Promise<PhotoUsage | null> {
     return null;
   }
+
+  async loadRoundPhotos(): Promise<GalleryPhoto[]> {
+    return [];
+  }
+
+  async setRoundPhoto(_id: string, _round: number | null): Promise<Result> {
+    return { ok: false, error: 'اختيار صورة الجولة يتطلب ربط Supabase.' };
+  }
 }
