@@ -86,6 +86,7 @@ export function HomePage() {
   return (
     <>
       <section className="hero" aria-labelledby="hero-title">
+        <img className="hero-photo" src={`${import.meta.env.BASE_URL}images/hero-pitch.jpg`} alt="" width={1280} height={960} decoding="async" fetchPriority="high" aria-hidden="true" />
         <div className="hero-field" aria-hidden="true"><div className="hero-plane"><HeroPitch /></div></div>
         <i className="beam b1" aria-hidden="true" />
         <i className="beam b2" aria-hidden="true" />

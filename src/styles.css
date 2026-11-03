@@ -160,6 +160,10 @@ main { padding-block: 18px 40px; min-height: 60vh; }
   background: radial-gradient(120% 80% at 50% -20%, #0d3326 0%, transparent 62%), #050b11;
   border: 1px solid var(--line); box-shadow: var(--shadow);
 }
+/* صورة الملعب من الأعلى خلف كل شيء، بتعتيم ليبقى النص مقروءاً */
+.hero-photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 45%; z-index: -4; opacity: 0.55; filter: saturate(0.9) brightness(0.8) contrast(1.05); pointer-events: none; }
+.hero-photo ~ .hero-field { opacity: 0.55; }
+.hero:has(.hero-photo)::before { content: ''; position: absolute; inset: 0; z-index: -3; pointer-events: none; background: linear-gradient(180deg, rgba(5, 11, 17, 0.55) 0%, rgba(5, 11, 17, 0.2) 45%, rgba(5, 11, 17, 0.7) 100%); }
 /* الأرض بمنظور حقيقي */
 .hero-field { position: absolute; inset-inline: 0; bottom: 0; height: 58%; z-index: -3; perspective: 520px; perspective-origin: 50% 0; overflow: hidden; -webkit-mask-image: linear-gradient(transparent 0, #000 42%); mask-image: linear-gradient(transparent 0, #000 42%); }
 .hero-plane { position: absolute; inset-inline: -40%; top: 0; height: 240%; transform-origin: 50% 0; transform: rotateX(64deg); background: repeating-linear-gradient(0deg, #0e6a3e 0 70px, #0a5532 70px 140px); }
@@ -506,7 +510,7 @@ td.num-hi { font-family: var(--font-display); font-size: 1.25rem; color: var(--l
   .hero { min-height: 560px; padding-bottom: 210px; }
   .hero-field { height: 62%; perspective: 760px; }
   .hero-plane { inset-inline: -12%; height: 170%; }
-  .hero > :not(.hero-field):not(.beam):not(.hero-dust):not(.ball-lane):not(.hero-date) { max-width: 560px; }
+  .hero > :not(.hero-field):not(.hero-photo):not(.beam):not(.hero-dust):not(.ball-lane):not(.hero-date) { max-width: 560px; }
   .hero-date { display: flex; flex-direction: column; align-items: center; position: absolute; top: 28px; inset-inline-end: 32px; padding: 14px 24px; border: 1px solid var(--line-2); border-radius: 16px; background: rgba(5, 11, 17, 0.6); text-align: center; }
   .hero-date b { font-family: var(--font-display); font-weight: 400; font-size: 3.6rem; line-height: 1; color: var(--lime); text-shadow: 0 0 22px rgba(184, 242, 58, 0.5); }
   .hero-date span { font-family: var(--font-display); font-size: 1.4rem; }
