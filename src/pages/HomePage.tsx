@@ -45,21 +45,6 @@ function countdownTarget(): { date: string; label: string } | null {
   return null;
 }
 
-/** خطوط الملعب بالطباشير: ترسم نفسها مرة واحدة عند فتح الصفحة */
-function HeroPitch() {
-  return (
-    <svg className="hero-pitch" viewBox="0 0 600 400" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">
-      <rect pathLength="1" x="20" y="20" width="560" height="360" />
-      <path pathLength="1" d="M300 20V380" />
-      <circle pathLength="1" cx="300" cy="200" r="62" />
-      <rect pathLength="1" x="20" y="110" width="100" height="180" />
-      <rect pathLength="1" x="20" y="155" width="40" height="90" />
-      <rect pathLength="1" x="480" y="110" width="100" height="180" />
-      <rect pathLength="1" x="540" y="155" width="40" height="90" />
-    </svg>
-  );
-}
-
 export function HomePage() {
   const state = useData();
   const { photos: latestPhotos } = usePhotos({ limit: 6 });
@@ -87,7 +72,6 @@ export function HomePage() {
     <>
       <section className="hero" aria-labelledby="hero-title">
         <img className="hero-photo" src={`${import.meta.env.BASE_URL}images/hero-pitch.jpg`} alt="" width={1280} height={960} decoding="async" fetchPriority="high" aria-hidden="true" />
-        <div className="hero-field" aria-hidden="true"><div className="hero-plane"><HeroPitch /></div></div>
         <i className="beam b1" aria-hidden="true" />
         <i className="beam b2" aria-hidden="true" />
         <HeroDust />
