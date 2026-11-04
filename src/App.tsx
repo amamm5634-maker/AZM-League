@@ -172,7 +172,14 @@ export default function App() {
         </div>
       </header>
 
-      {offline && <div className="offline-banner" role="status">أنت غير متصل بالإنترنت — تُعرض آخر نسخة محفوظة من النتائج.</div>}
+      {offline && (
+        <div className="offline-banner" role="status">
+          {typeof navigator !== 'undefined' && navigator.onLine === false
+            ? 'أنت غير متصل بالإنترنت — تُعرض آخر نسخة محفوظة من النتائج.'
+            : 'تعذّر تحديث البيانات من الخادم الآن — تُعرض آخر نسخة محفوظة، ونعيد المحاولة تلقائياً. '}
+          <button type="button" className="btn" onClick={reload}>إعادة المحاولة</button>
+        </div>
+      )}
       <main id="main" tabIndex={-1}>
         <div className="container">
           {loading && <Loading label="جارٍ تحميل بيانات الدوري…" />}
