@@ -6,7 +6,7 @@ export function LineupPitch({ squad, team }: { squad: Player[]; team: Team }) {
   const { rows, subs } = pickLineup(squad);
   const pitchStyle = {
     '--tc': team.color,
-    '--pitch-photo': `url("${import.meta.env.BASE_URL}images/field-aerial.jpg")`,
+    '--pitch-photo': `url("${import.meta.env.BASE_URL}images/field-aerial-v.jpg")`,
   } as CSSProperties;
 
   return (

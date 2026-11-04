@@ -644,4 +644,9 @@ a.sponsor:hover { background: rgba(255, 255, 255, 0.12); transform: translateY(-
 .pred-bars .mine .pred-track span { background: var(--lime); }
 .pred-bars .mine .pred-row { color: var(--lime); }
 
-.music-btn.is-on { color: var(--lime); background: rgba(184, 242, 58, 0.12); }
+.music-btn.is-on { color: var(--lime); border-color: var(--lime); background: rgba(184, 242, 58, 0.12); }
+
+.music-btn { display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--line-2); background: transparent; color: var(--head); cursor: pointer; font-size: 0.8rem; font-weight: 700; white-space: nowrap; }
+.music-btn .icon { width: 18px; height: 18px; }
+.music-btn:hover { background: var(--ink-2); }
+@media (max-width: 420px) { .music-btn { padding: 0 9px; } .music-btn .music-label { font-size: 0.72rem; } }

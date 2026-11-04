@@ -35,7 +35,7 @@ export function MusicButton() {
   return (
     <>
       <audio ref={ref} src={SRC} loop preload="none" onError={() => setMissing(true)} onPause={() => setPlaying(false)} onPlay={() => setPlaying(true)} />
-      <button type="button" className={`icon-btn music-btn${playing ? ' is-on' : ''}`} onClick={() => void toggle()} aria-pressed={playing} aria-label={playing ? 'إيقاف الموسيقى' : 'تشغيل موسيقى الدوري'} title={playing ? 'إيقاف الموسيقى' : 'تشغيل موسيقى الدوري'}>
+      <button type="button" className={`music-btn${playing ? ' is-on' : ''}`} onClick={() => void toggle()} aria-pressed={playing} aria-label={playing ? 'إيقاف أغنية الدوري' : 'تشغيل أغنية الدوري'}>
         <svg className="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
           <path d="M11 5 6 9H3v6h3l5 4V5z" />
           {playing ? (
@@ -47,6 +47,7 @@ export function MusicButton() {
             <path d="m16 9 5 6m0-6-5 6" />
           )}
         </svg>
+        <span className="music-label">{playing ? 'إيقاف الأغنية' : 'أغنية الدوري'}</span>
       </button>
     </>
   );

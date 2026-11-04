@@ -18,9 +18,11 @@ export function TeamsPage() {
 
   const teams = useMemo(() => {
     const q = query.trim();
-    return state.teams.filter(
+    const list = state.teams.filter(
       (t) => (group === 'all' || t.group === group) && (!q || t.name.includes(q) || t.nickname.includes(q)),
     );
+    // فريق الحاسوب (صاحب الموقع) أولاً، والباقي بترتيبه
+    return [...list].sort((a, b) => Number(b.nickname === 'حاسوب') - Number(a.nickname === 'حاسوب'));
   }, [state.teams, query, group]);
 
   const drawn = state.teams.every((t) => !!t.group);
