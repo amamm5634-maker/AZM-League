@@ -45,9 +45,18 @@ export class SupabaseRepository implements TournamentRepository {
     private readonly seedFn: () => TournamentState = buildSeed,
   ) {}
 
-  async load(): Promise<TournamentState> {
-    const fresh = this.seedFn();
-    const [ms, ev, nw] = await Promise.all([
+  /** جلسة دخول منتهية (JWT expired) تجعل حتى القراءة العامة تفشل بـ 401: نجدّدها، وإن فشل التجديد نخرج محلياً */
+  private async recoverSession(): Promise<void> {
+    try {
+      const { error } = await this.db.auth.refreshSession();
+      if (error) await this.db.auth.signOut({ scope: 'local' });
+    } catch {
+      await this.db.auth.signOut({ scope: 'local' }).catch(() => undefined);
+    }
+  }
+
+  private fetchAll() {
+    return Promise.all([
       this.db.from('match_state').select('match_id,home_score,away_score,status,motm_player_id'),
       this.db
         .from('goal_events')
@@ -55,6 +64,16 @@ export class SupabaseRepository implements TournamentRepository {
         .order('created_at', { ascending: true }),
       this.db.from('news').select('id,title,summary,tag,image_url,published_at').order('published_at', { ascending: false }),
     ]);
+  }
+
+  async load(): Promise<TournamentState> {
+    const fresh = this.seedFn();
+    let [ms, ev, nw] = await this.fetchAll();
+    const expired = [ms.error, ev.error, nw.error].some((e) => e && /jwt|expired/i.test(e.message));
+    if (expired) {
+      await this.recoverSession();
+      [ms, ev, nw] = await this.fetchAll();
+    }
     const err = ms.error ?? ev.error ?? nw.error;
     if (err) throw new Error(err.message);
 
