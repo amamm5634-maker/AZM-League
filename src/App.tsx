@@ -20,6 +20,7 @@ import { BracketPage } from './pages/BracketPage';
 import { GalleryPage } from './pages/GalleryPage';
 import { GroupsPage } from './pages/GroupsPage';
 import { HomePage } from './pages/HomePage';
+import { MusicButton } from './components/MusicButton';
 import { NewsPage } from './pages/NewsPage';
 import { ScorersPage } from './pages/ScorersPage';
 import { StandingsPage } from './pages/StandingsPage';
@@ -164,6 +165,7 @@ export default function App() {
                 </a>
               ))}
             </nav>
+            <MusicButton />
             <a className="icon-btn" href="#/search" aria-label="بحث"><Icon name="search" /></a>
             <a className="btn btn-primary nav-cta" href="#/groups">
               القرعة {formatArabicDate(TOURNAMENT.drawDate)}
