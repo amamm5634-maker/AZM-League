@@ -215,7 +215,7 @@ export function HomePage() {
         <div className="news-list">
           {news.map((n) => (
             <article key={n.id} className="card news-item">
-              {n.image && <img className="news-img" src={`${import.meta.env.BASE_URL}${n.image}`} alt="" loading="lazy" />}
+              {n.image && <img className="news-img" src={n.image.startsWith('http') ? n.image : `${import.meta.env.BASE_URL}${n.image}`} alt="" loading="lazy" />}
               <div className="meta">
                 <span className="chip">{n.tag}</span>
                 <span>{formatArabicDate(n.date)}</span>
