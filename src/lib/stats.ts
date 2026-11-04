@@ -175,3 +175,8 @@ export function formatArabicDate(iso: string): string {
   const d = new Date(`${iso}T12:00:00`);
   return d.toLocaleDateString('ar-EG-u-nu-latn', { weekday: 'long', day: 'numeric', month: 'long' });
 }
+
+/** فريق الحاسوب (صاحب الموقع) أولاً في القوائم، والباقي بترتيبه الأصلي */
+export function featuredFirst<T extends { nickname: string }>(teams: T[]): T[] {
+  return [...teams].sort((a, b) => Number(b.nickname === 'حاسوب') - Number(a.nickname === 'حاسوب'));
+}

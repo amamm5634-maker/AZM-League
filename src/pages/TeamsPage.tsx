@@ -2,7 +2,7 @@ import { useMemo, useState, type CSSProperties } from 'react';
 import type { GroupId } from '../types';
 import { GROUP_IDS, GROUP_LABELS, TOURNAMENT } from '../data/config';
 import { qualificationOutlook } from '../lib/scenarios';
-import { computePlayerStats, computeStandings, sortMatches, teamById } from '../lib/stats';
+import { computePlayerStats, computeStandings, featuredFirst, sortMatches, teamById } from '../lib/stats';
 import { useData } from '../store';
 import { Icon } from '../components/Icon';
 import { LineupPitch } from '../components/LineupPitch';
@@ -21,8 +21,7 @@ export function TeamsPage() {
     const list = state.teams.filter(
       (t) => (group === 'all' || t.group === group) && (!q || t.name.includes(q) || t.nickname.includes(q)),
     );
-    // فريق الحاسوب (صاحب الموقع) أولاً، والباقي بترتيبه
-    return [...list].sort((a, b) => Number(b.nickname === 'حاسوب') - Number(a.nickname === 'حاسوب'));
+    return featuredFirst(list);
   }, [state.teams, query, group]);
 
   const drawn = state.teams.every((t) => !!t.group);

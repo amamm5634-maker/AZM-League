@@ -2,6 +2,7 @@ import { SCHEDULE, STATUS_LABELS, TOURNAMENT } from '../data/config';
 import {
   computePlayerStats,
   computeStandings,
+  featuredFirst,
   formatArabicDate,
   isDrawn,
   latestResults,
@@ -247,7 +248,7 @@ export function HomePage() {
           <a className="link-more" href="#/teams">عرض الكل</a>
         </div>
         <div className="college-grid">
-          {state.teams.map((t) => (
+          {featuredFirst(state.teams).map((t) => (
             <a key={t.id} className="college-chip" href={`#/teams/${t.id}`}>
               <TeamBadge team={t} size={34} />
               <span>{t.nickname}</span>
