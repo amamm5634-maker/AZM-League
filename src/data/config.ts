@@ -5,7 +5,7 @@ import type { GroupId, MatchStatus } from '../types';
  */
 export const TOURNAMENT = {
   name: 'دوري عزم',
-  logo: '' as string, // مسار شعار الدوري داخل public/ مثل 'logo.png' (فارغ = الشعار الافتراضي)
+  logo: 'logos/league.png' as string, // مسار شعار الدوري داخل public/ مثل 'logo.png' (فارغ = الشعار الافتراضي)
   university: 'جامعة بحري',
   batch: 'دفعة 23/24',
   tagline: 'الدوري العام لكل كليات جامعة بحري',
