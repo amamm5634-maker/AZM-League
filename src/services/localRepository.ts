@@ -1,4 +1,4 @@
-import type { EventInput, GalleryPhoto, Match, MatchEvent, TournamentState } from '../types';
+import type { EventInput, GalleryPhoto, Match, MatchEvent, MatchMessage, TournamentState } from '../types';
 import { buildSeed } from '../data/seed';
 import { validateEventInput, validateScore } from '../lib/validation';
 import { adjustScore } from '../lib/scoring';
@@ -197,5 +197,29 @@ export class LocalStorageRepository implements TournamentRepository {
 
   async photoUsage(): Promise<PhotoUsage | null> {
     return null;
+  }
+
+  async loadRoundPhotos(): Promise<GalleryPhoto[]> {
+    return [];
+  }
+
+  async loadMessages(_matchId: string): Promise<MatchMessage[]> {
+    return [];
+  }
+
+  async submitMessage(_m: string, _a: string, _b: string, _d: string): Promise<Result> {
+    return { ok: false, error: 'رسائل المدرجات تتطلب ربط Supabase.' };
+  }
+
+  async loadPendingMessages(): Promise<MatchMessage[]> {
+    return [];
+  }
+
+  async reviewMessage(_id: string, _s: 'approved' | 'rejected'): Promise<Result> {
+    return { ok: false, error: 'مراجعة الرسائل تتطلب ربط Supabase.' };
+  }
+
+  async setRoundPhoto(_id: string, _round: number | null): Promise<Result> {
+    return { ok: false, error: 'اختيار صورة الجولة يتطلب ربط Supabase.' };
   }
 }

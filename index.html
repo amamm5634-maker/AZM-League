@@ -4,6 +4,18 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#050b11" />
+    <script>
+      // تنظيف Service Workers القديمة التي قد تعيد ملفات بناء غير موجودة.
+      // يجري مرة واحدة ثم يعيد فتح الصفحة بالنسخة الجديدة.
+      if ('serviceWorker' in navigator && navigator.serviceWorker.controller && !sessionStorage.getItem('azm-sw-cleaned')) {
+        sessionStorage.setItem('azm-sw-cleaned', '1');
+        navigator.serviceWorker.getRegistrations()
+          .then((registrations) => Promise.all(registrations.map((registration) => registration.unregister())))
+          .then(() => caches.keys())
+          .then((keys) => Promise.all(keys.map((key) => caches.delete(key))))
+          .finally(() => window.location.reload());
+      }
+    </script>
     <link rel="manifest" href="manifest.webmanifest" />
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
     <link rel="apple-touch-icon" href="icons/icon-192.png" />
@@ -11,10 +23,18 @@
     <meta name="mobile-web-app-capable" content="yes" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- خلفية داكنة فورية: حتى لو تأخر تحميل ملفات التنسيق لا تظهر صفحة بيضاء -->
+    <style>html,body{background:#050b11;color:#e8f0ec}</style>
+    <!-- الخطوط لا تحجب عرض الصفحة: تُحمَّل في الخلفية (إن كان خط جوجل بطيئاً أو محجوباً تظهر الصفحة بخط النظام) -->
     <link
       rel="stylesheet"
       href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Lalezar&display=swap"
+      media="print"
+      onload="this.media='all'"
     />
+    <noscript>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Lalezar&display=swap" />
+    </noscript>
     <meta name="description" content="دوري عزم: الدوري العام لكليات جامعة بحري — المباريات والنتائج والترتيب والفرق واللاعبون." />
     <title>دوري عزم — جامعة بحري</title>
   </head>

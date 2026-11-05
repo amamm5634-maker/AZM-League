@@ -119,3 +119,34 @@
 .staff-actions { align-items: center; }
 .staff-actions select { flex: 1; min-height: 40px; border: 1px solid var(--border); border-radius: 10px; background: #fff; padding: 0 10px; }
 .role-guide { list-style: none; padding: 0; display: grid; gap: 2px; }
+
+/* ---------- بوابة السياج (شاشة الدخول) ---------- */
+.gate-scene { position: fixed; inset: 0; z-index: 60; overflow: auto; display: grid; place-items: center; padding: 20px 16px; background: #05080b center / cover no-repeat; }
+.gate-scene::before { content: ''; position: fixed; inset: 0; background: radial-gradient(90% 70% at 50% 45%, rgba(5, 8, 11, 0.35), rgba(5, 8, 11, 0.88)); pointer-events: none; }
+.gate-body { position: relative; width: 100%; max-width: 440px; display: grid; justify-items: center; gap: 6px; }
+.gate-body .login-card { width: 100%; margin: 0; box-shadow: 0 18px 50px rgba(0, 0, 0, 0.6); }
+.gate-lock { filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.6)); margin-bottom: -6px; position: relative; z-index: 1; }
+.gate-lock .shackle { transform-origin: 50% 100%; transition: transform 0.45s cubic-bezier(0.3, 1.4, 0.5, 1); }
+.gate-lock.is-open .shackle { transform: translateY(-9px) rotate(-18deg); }
+
+/* حركة الانفتاح فوق اللوحة */
+.gate-opening { position: fixed; inset: 0; z-index: 100; direction: ltr; pointer-events: none; display: grid; place-items: center; animation: gate-fade 0.35s ease 1.35s forwards; }
+.gate-door { position: absolute; top: 0; bottom: 0; width: 50%; overflow: hidden; background: #05080b; animation: gate-slide-l 0.95s cubic-bezier(0.7, 0, 0.3, 1) 0.55s forwards; }
+.gate-door.l { left: 0; }
+.gate-door.r { right: 0; --dir: 1; animation-name: gate-slide-r; }
+.gate-door > div { position: absolute; top: 0; bottom: 0; width: 100vw; background: #05080b center / cover no-repeat; }
+.gate-door > div::after { content: ''; position: absolute; inset: 0; background: radial-gradient(90% 70% at 50% 45%, rgba(5, 8, 11, 0.35), rgba(5, 8, 11, 0.88)); }
+.gate-door.l > div { left: 0; }
+.gate-door.r > div { right: 0; }
+.gate-opening .gate-lock { position: relative; z-index: 2; animation: gate-lock-out 0.4s ease 0.5s forwards; }
+@keyframes gate-slide-l { to { transform: translateX(-102%); } }
+@keyframes gate-slide-r { to { transform: translateX(102%); } }
+@keyframes gate-lock-out { to { opacity: 0; transform: translateY(14px) scale(0.9); } }
+@keyframes gate-fade { to { opacity: 0; } }
+
+.round-select { max-width: 170px; }
+
+.msg-queue { list-style: none; display: grid; gap: 10px; margin-top: 12px; }
+.msg-item { display: grid; gap: 8px; padding: 12px; border: 1px solid var(--line); border-radius: 12px; }
+.msg-body { margin: 0 0 4px; font-weight: 600; overflow-wrap: anywhere; }
+.msg-item .row { display: flex; flex-wrap: wrap; gap: 8px; }

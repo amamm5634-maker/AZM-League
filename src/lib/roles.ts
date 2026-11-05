@@ -1,7 +1,7 @@
 /** الأدوار وما يراه كل دور في لوحة الإدارة (منطق صرف بلا واجهة، ليسهل اختباره) */
 
 export type Role = 'admin' | 'editor' | 'photographer' | 'scorer';
-export type AdminTab = 'quick' | 'results' | 'news' | 'photos' | 'staff';
+export type AdminTab = 'quick' | 'results' | 'news' | 'photos' | 'messages' | 'staff';
 
 export const ROLES: Role[] = ['scorer', 'editor', 'photographer', 'admin'];
 
@@ -15,7 +15,7 @@ export const ROLE_LABELS: Record<Role, string> = {
 /** وصف قصير يظهر في صفحة الطاقم: ماذا يرى هذا الدور */
 export const ROLE_HINTS: Record<Role, string> = {
   scorer: 'وضع الميدان والنتائج والأهداف',
-  editor: 'الأخبار والصور (نشر وتعديل وحذف)',
+  editor: 'الأخبار والصور ومراجعة رسائل المدرجات',
   photographer: 'رفع الصور فقط',
   admin: 'كل شيء، ومنه إدارة الطاقم',
 };
@@ -25,6 +25,7 @@ const TAB_LABELS: Record<AdminTab, string> = {
   results: 'النتائج والأهداف',
   news: 'الأخبار',
   photos: 'الصور',
+  messages: 'رسائل المدرجات',
   staff: 'الطاقم',
 };
 
@@ -33,10 +34,11 @@ const TAB_ROLES: Record<AdminTab, Role[]> = {
   results: ['admin', 'scorer'],
   news: ['admin', 'editor'],
   photos: ['admin', 'editor', 'photographer'],
+  messages: ['admin', 'editor'],
   staff: ['admin'],
 };
 
-const TAB_ORDER: AdminTab[] = ['quick', 'results', 'news', 'photos', 'staff'];
+const TAB_ORDER: AdminTab[] = ['quick', 'results', 'news', 'photos', 'messages', 'staff'];
 
 /** التبويبات التي يراها هذا الدور، بالترتيب */
 export function tabsForRole(role: Role): { key: AdminTab; label: string }[] {

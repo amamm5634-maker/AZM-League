@@ -160,17 +160,16 @@ main { padding-block: 18px 40px; min-height: 60vh; }
   background: radial-gradient(120% 80% at 50% -20%, #0d3326 0%, transparent 62%), #050b11;
   border: 1px solid var(--line); box-shadow: var(--shadow);
 }
+/* صورة الملعب من الأعلى خلف كل شيء، بتعتيم ليبقى النص مقروءاً */
+.hero-photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 50%; z-index: -4; opacity: 0.8; filter: saturate(0.95) brightness(0.85) contrast(1.05); pointer-events: none; }
+.hero-photo ~ .hero-field { opacity: 0.55; }
+.hero:has(.hero-photo)::before { content: ''; position: absolute; inset: 0; z-index: -3; pointer-events: none; background: linear-gradient(180deg, rgba(5, 11, 17, 0.55) 0%, rgba(5, 11, 17, 0.2) 45%, rgba(5, 11, 17, 0.7) 100%); }
 /* الأرض بمنظور حقيقي */
 .hero-field { position: absolute; inset-inline: 0; bottom: 0; height: 58%; z-index: -3; perspective: 520px; perspective-origin: 50% 0; overflow: hidden; -webkit-mask-image: linear-gradient(transparent 0, #000 42%); mask-image: linear-gradient(transparent 0, #000 42%); }
 .hero-plane { position: absolute; inset-inline: -40%; top: 0; height: 240%; transform-origin: 50% 0; transform: rotateX(64deg); background: repeating-linear-gradient(0deg, #0e6a3e 0 70px, #0a5532 70px 140px); }
 .hero-plane .hero-pitch { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0.6; }
 .hero-pitch * { fill: none; stroke: #fff; stroke-width: 3; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 0; animation: draw 2.2s ease-out both; }
 @keyframes draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
-/* شعاعا الكشّافات */
-.beam { position: absolute; top: -30%; width: 46%; height: 150%; z-index: -2; pointer-events: none; background: linear-gradient(180deg, rgba(228, 255, 154, 0.26), rgba(228, 255, 154, 0.05) 60%, transparent); clip-path: polygon(42% 0, 58% 0, 100% 100%, 0 100%); transform-origin: 50% 0; animation: sway 9s ease-in-out infinite alternate; }
-.beam.b1 { inset-inline-start: 2%; transform: rotate(14deg); }
-.beam.b2 { inset-inline-end: 2%; transform: rotate(-14deg); animation-delay: -4.5s; }
-@keyframes sway { from { opacity: 0.55; } to { opacity: 1; } }
 .hero-dust { position: absolute; inset: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; }
 .hero::after { content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none; background: radial-gradient(120% 100% at 50% 40%, transparent 55%, rgba(0, 0, 0, 0.55)); }
 
@@ -244,6 +243,8 @@ main { padding-block: 18px 40px; min-height: 60vh; }
 .timeline li { border-top: 3px solid var(--lime); padding-top: 12px; display: flex; flex-direction: column; gap: 2px; }
 .tl-date { font-family: var(--font-display); font-size: 1.35rem; color: var(--head); }
 .timeline small { color: var(--muted); }
+.league-life { position: relative; overflow: hidden; }
+.league-floodlight { display: none; }
 
 /* ---------- 5. بطاقة المباراة: شريط النتيجة ---------- */
 .match-list { display: grid; gap: 12px; }
@@ -365,7 +366,7 @@ td.num-hi { font-family: var(--font-display); font-size: 1.25rem; color: var(--l
 .num-badge { display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 8px; background: var(--grad-lime); color: var(--gold-ink); font-family: var(--font-display); font-size: 1rem; }
 
 /* التشكيلة على الملعب */
-.pitch { --tc: #0e6b47; position: relative; border-radius: 16px; background: repeating-linear-gradient(0deg, #0e6a3e 0 48px, #0a5532 48px 96px); border: 2px solid rgba(255, 255, 255, 0.55); aspect-ratio: 3 / 4; max-width: 460px; margin-inline: auto; padding: 18px 6px; display: flex; flex-direction: column; justify-content: space-around; overflow: hidden; box-shadow: var(--shadow), inset 0 0 90px rgba(0, 0, 0, 0.45); }
+.pitch { --tc: #0e6b47; position: relative; border-radius: 16px; background: linear-gradient(rgba(2, 18, 12, 0.38), rgba(2, 18, 12, 0.55)), var(--pitch-photo) center / cover, repeating-linear-gradient(0deg, #0e6a3e 0 48px, #0a5532 48px 96px); border: 2px solid rgba(255, 255, 255, 0.55); aspect-ratio: 3 / 4; max-width: 460px; margin-inline: auto; padding: 18px 6px; display: flex; flex-direction: column; justify-content: space-around; overflow: hidden; box-shadow: var(--shadow), inset 0 0 90px rgba(0, 0, 0, 0.45); }
 .pitch::before { content: ''; position: absolute; inset-inline: 0; top: 50%; height: 2px; background: rgba(255, 255, 255, 0.6); }
 .pitch::after { content: ''; position: absolute; top: 50%; left: 50%; width: 22%; aspect-ratio: 1; border: 2px solid rgba(255, 255, 255, 0.6); border-radius: 50%; transform: translate(-50%, -50%); }
 .pbox { position: absolute; left: 25%; width: 50%; height: 15%; border: 2px solid rgba(255, 255, 255, 0.6); }
@@ -506,16 +507,19 @@ td.num-hi { font-family: var(--font-display); font-size: 1.25rem; color: var(--l
   .hero { min-height: 560px; padding-bottom: 210px; }
   .hero-field { height: 62%; perspective: 760px; }
   .hero-plane { inset-inline: -12%; height: 170%; }
-  .hero > :not(.hero-field):not(.beam):not(.hero-dust):not(.ball-lane):not(.hero-date) { max-width: 560px; }
+  .hero > :not(.hero-field):not(.hero-photo):not(.hero-dust):not(.ball-lane):not(.hero-date) { max-width: 560px; }
   .hero-date { display: flex; flex-direction: column; align-items: center; position: absolute; top: 28px; inset-inline-end: 32px; padding: 14px 24px; border: 1px solid var(--line-2); border-radius: 16px; background: rgba(5, 11, 17, 0.6); text-align: center; }
   .hero-date b { font-family: var(--font-display); font-weight: 400; font-size: 3.6rem; line-height: 1; color: var(--lime); text-shadow: 0 0 22px rgba(184, 242, 58, 0.5); }
   .hero-date span { font-family: var(--font-display); font-size: 1.4rem; }
   .hero-date small { color: var(--muted); }
+  .league-life { min-height: 158px; padding-inline-end: min(42%, 360px); }
+  .league-floodlight { display: block; position: absolute; inset-block: 0; inset-inline-end: 0; width: min(38%, 330px); height: 100%; object-fit: cover; object-position: 58% center; opacity: 0.7; -webkit-mask-image: linear-gradient(to left, #000 58%, transparent); mask-image: linear-gradient(to left, #000 58%, transparent); }
+  .league-life > :not(.league-floodlight) { position: relative; z-index: 1; }
 }
 @media (hover: none) { .pcard:hover, .match:hover, .team-card:hover, .news-item:hover { transform: none; } }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
-  .hero-pitch *, .beam, .section, .st-live::before, .skeleton { animation: none; }
+  .hero-pitch *, .section, .st-live::before, .skeleton { animation: none; }
   .spinner { animation-duration: 2.4s; }
   .ball-lane, .hero-dust { display: none; }
   .pcard, .btn-primary, .match, .team-card { transition: none; }
@@ -606,3 +610,25 @@ a.sponsor:hover { background: rgba(255, 255, 255, 0.12); transform: translateY(-
   .nav a[aria-current='page']::after { inset-inline: 8px; }
   .nav-cta { display: none; }
 }
+
+/* ---------- صورة الجولة (المعرض) ---------- */
+.round-picks { margin-bottom: 22px; }
+.round-picks h2 { font-size: 1.15rem; margin-bottom: 10px; }
+.round-picks ul { list-style: none; display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr)); }
+.round-picks button { position: relative; display: block; width: 100%; padding: 0; border: 1px solid var(--award, #d4af37); border-radius: 14px; overflow: hidden; background: #000; cursor: pointer; aspect-ratio: 4 / 3; }
+.round-picks img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.round-picks .rp-badge { position: absolute; top: 8px; inset-inline-start: 8px; background: var(--award, #d4af37); color: #1a1405; font-weight: 800; font-size: 0.78rem; padding: 3px 10px; border-radius: 999px; }
+.round-picks .rp-cap { position: absolute; inset-inline: 0; bottom: 0; padding: 18px 10px 8px; text-align: start; color: #fff; font-size: 0.85rem; background: linear-gradient(transparent, rgba(0, 0, 0, 0.75)); }
+
+/* ---------- مدرجات المباراة ---------- */
+.stands-form { display: grid; gap: 10px; }
+.stands-form textarea { width: 100%; resize: vertical; min-height: 64px; font: inherit; }
+.stands-notice { font-weight: 700; }
+.stands-notice.ok { color: var(--lime); }
+.stands-notice.error { color: var(--danger, #ff6b6b); }
+.stands-list { list-style: none; display: grid; gap: 8px; margin-top: 12px; }
+.stands-list li { padding: 12px 14px; }
+.stands-list p { margin: 0 0 4px; overflow-wrap: anywhere; }
+.stands-list small { color: var(--muted); }
+.field textarea { width: 100%; padding: 10px 12px; border: 1px solid var(--line-2); border-radius: 10px; background: var(--ink-2); color: var(--text); }
+.field textarea:focus { border-color: var(--lime); outline: none; box-shadow: 0 0 0 3px rgba(184, 242, 58, 0.2); }

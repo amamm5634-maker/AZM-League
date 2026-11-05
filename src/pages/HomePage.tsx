@@ -20,7 +20,6 @@ import { PlayerCard } from '../components/PlayerCard';
 import { EmptyState } from '../components/StateViews';
 import { TeamBadge } from '../components/TeamBadge';
 import { RollingBall } from '../components/RollingBall';
-import { HeroDust } from '../components/HeroDust';
 import { SponsorsSection } from '../components/Sponsors';
 
 const QUICK_LINKS: { href: string; title: string; hint: string; icon: IconName }[] = [
@@ -45,21 +44,6 @@ function countdownTarget(): { date: string; label: string } | null {
   return null;
 }
 
-/** خطوط الملعب بالطباشير: ترسم نفسها مرة واحدة عند فتح الصفحة */
-function HeroPitch() {
-  return (
-    <svg className="hero-pitch" viewBox="0 0 600 400" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">
-      <rect pathLength="1" x="20" y="20" width="560" height="360" />
-      <path pathLength="1" d="M300 20V380" />
-      <circle pathLength="1" cx="300" cy="200" r="62" />
-      <rect pathLength="1" x="20" y="110" width="100" height="180" />
-      <rect pathLength="1" x="20" y="155" width="40" height="90" />
-      <rect pathLength="1" x="480" y="110" width="100" height="180" />
-      <rect pathLength="1" x="540" y="155" width="40" height="90" />
-    </svg>
-  );
-}
-
 export function HomePage() {
   const state = useData();
   const { photos: latestPhotos } = usePhotos({ limit: 6 });
@@ -71,6 +55,8 @@ export function HomePage() {
   const news = [...state.news].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 3);
   const target = countdownTarget();
   const drawn = isDrawn(state);
+  const hour = new Date().getHours();
+  const isNight = hour >= 18 || hour < 6;
 
   const start = new Date(`${TOURNAMENT.startDate}T12:00:00`);
   const startMonth = start.toLocaleDateString('ar-EG-u-nu-latn', { month: 'long' });
@@ -86,10 +72,7 @@ export function HomePage() {
   return (
     <>
       <section className="hero" aria-labelledby="hero-title">
-        <div className="hero-field" aria-hidden="true"><div className="hero-plane"><HeroPitch /></div></div>
-        <i className="beam b1" aria-hidden="true" />
-        <i className="beam b2" aria-hidden="true" />
-        <HeroDust />
+        <img className="hero-photo" src={`${import.meta.env.BASE_URL}images/field-aerial.jpg`} alt="" width={1280} height={960} decoding="async" fetchPriority="high" aria-hidden="true" />
         <div className="hero-date" aria-hidden="true">
           <b>{start.getDate()}</b>
           <span>{startMonth}</span>
@@ -199,7 +182,8 @@ export function HomePage() {
         </section>
       )}
 
-      <section className="section" aria-labelledby="life-title">
+      <section className="section league-life" aria-labelledby="life-title">
+        {isNight && <img className="league-floodlight" src={`${import.meta.env.BASE_URL}images/floodlight-night.jpg`} alt="" aria-hidden="true" />}
         <div className="section-title"><h2 id="life-title">حياة الدوري</h2></div>
         <ol className="timeline">
           {LIFE.map((l) => (
@@ -230,6 +214,7 @@ export function HomePage() {
         <div className="news-list">
           {news.map((n) => (
             <article key={n.id} className="card news-item">
+              {n.image && <img className="news-img" src={`${import.meta.env.BASE_URL}${n.image}`} alt="" loading="lazy" />}
               <div className="meta">
                 <span className="chip">{n.tag}</span>
                 <span>{formatArabicDate(n.date)}</span>

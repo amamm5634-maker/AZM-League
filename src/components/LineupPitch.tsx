@@ -4,10 +4,14 @@ import { pickLineup } from '../lib/lineup';
 
 export function LineupPitch({ squad, team }: { squad: Player[]; team: Team }) {
   const { rows, subs } = pickLineup(squad);
+  const pitchStyle = {
+    '--tc': team.color,
+    '--pitch-photo': `url("${import.meta.env.BASE_URL}images/field-aerial.jpg")`,
+  } as CSSProperties;
 
   return (
     <div>
-      <div className="pitch" style={{ '--tc': team.color } as CSSProperties} role="img" aria-label={`تشكيلة ${team.name} 4-3-3`}>
+      <div className="pitch" style={pitchStyle} role="img" aria-label={`تشكيلة ${team.name} 4-3-3`}>
         <i className="pbox top" aria-hidden="true" />
         <i className="pbox bot" aria-hidden="true" />
         {rows.map((row, ri) => (
