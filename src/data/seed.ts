@@ -18,7 +18,7 @@ const COLLEGES: { nickname: string; name: string; short: string; color: string; 
   { nickname: 'تربية', name: 'كلية التربية', short: 'ترب', color: '#15803d' },
   { nickname: 'قانون', name: 'كلية القانون', short: 'قان', color: '#1e293b' },
   { nickname: 'علوم إدارية', name: 'كلية العلوم الإدارية', short: 'إدا', color: '#b45309' },
-  { nickname: 'حاسوب', name: 'كلية الحاسوب', short: 'حاس', color: '#0f766e', logo: 'logos/cs-badge.png' },
+  { nickname: 'حاسوب', name: 'كلية الحاسوب', short: 'حاس', color: '#0f766e', logo: 'logos/cs-team.png' },
   { nickname: 'الطب البيطري', name: 'كلية الطب البيطري', short: 'بيط', color: '#4d7c0f' },
   { nickname: 'صحة عامة', name: 'كلية الصحة العامة', short: 'صحة', color: '#0369a1' },
   { nickname: 'اقتصاد', name: 'كلية الاقتصاد', short: 'اقت', color: '#a16207' },
