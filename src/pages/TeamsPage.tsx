@@ -2,7 +2,9 @@ import { useMemo, useState, type CSSProperties } from 'react';
 import type { GroupId } from '../types';
 import { GROUP_IDS, GROUP_LABELS, TOURNAMENT } from '../data/config';
 import { qualificationOutlook } from '../lib/scenarios';
-import { computePlayerStats, computeStandings, featuredFirst, sortMatches, teamById } from '../lib/stats';
+import { computePlayerStats, computeStandings, featuredFirst, formatArabicDate, sortMatches, teamById } from '../lib/stats';
+import { latestLineup } from '../lib/lineup';
+import { matchLabel } from '../lib/gallery';
 import { useData } from '../store';
 import { Icon } from '../components/Icon';
 import { LineupPitch } from '../components/LineupPitch';
@@ -91,6 +93,7 @@ export function TeamDetailPage({ teamId }: { teamId: string }) {
   const rank = table.findIndex((r) => r.teamId === team.id) + 1;
   const stats = computePlayerStats(state);
   const squad = state.players.filter((p) => p.teamId === team.id).sort((a, b) => a.number - b.number);
+  const latest = latestLineup(state, team.id);
   const matches = sortMatches(state.matches.filter((m) => m.homeId === team.id || m.awayId === team.id));
 
   return (
@@ -123,9 +126,18 @@ export function TeamDetailPage({ teamId }: { teamId: string }) {
       </section>
 
       <section className="section" aria-labelledby="lineup-title">
-        <div className="section-title"><h2 id="lineup-title">التشكيلة</h2></div>
+        <div className="section-title"><h2 id="lineup-title">{latest?.match.status === 'scheduled' ? 'التشكيلة المعلنة' : 'آخر تشكيلة'}</h2></div>
         {squad.length === 0 && <p className="notice" role="note" style={{ marginBottom: 12 }}>{TOURNAMENT.playersNotice}</p>}
-        <LineupPitch squad={squad} team={team} />
+        {latest ? (
+          <>
+            <p className="field-hint" style={{ textAlign: 'center', marginBottom: 8 }}>
+              مباراة <a href={`#/match/${latest.match.id}`}>{matchLabel(state, latest.match)}</a> · {formatArabicDate(latest.match.date)}
+            </p>
+            <LineupPitch squad={squad} lineupIds={latest.lineup.playerIds} team={team} />
+          </>
+        ) : (
+          squad.length > 0 && <p className="notice" role="note">لم تُعلن التشكيلة الأساسية بعد، وتظهر هنا فور تسجيلها قبل المباراة. قائمة اللاعبين بالأسفل.</p>
+        )}
       </section>
 
       {squad.length > 0 && (

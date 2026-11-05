@@ -1,9 +1,10 @@
 import type { CSSProperties } from 'react';
 import type { Player, Team } from '../types';
-import { pickLineup } from '../lib/lineup';
+import { buildFormation } from '../lib/lineup';
 
-export function LineupPitch({ squad, team }: { squad: Player[]; team: Team }) {
-  const { rows, subs } = pickLineup(squad);
+/** يعرض التشكيلة الأساسية التي سجّلها المسؤول على الملعب، والباقون من قائمة الفريق بدلاء */
+export function LineupPitch({ squad, lineupIds, team }: { squad: Player[]; lineupIds: string[]; team: Team }) {
+  const { rows, label, subs } = buildFormation(squad, lineupIds);
   const pitchStyle = {
     '--tc': team.color,
     '--pitch-photo': `url("${import.meta.env.BASE_URL}images/field-aerial-v.jpg")`,
@@ -11,21 +12,21 @@ export function LineupPitch({ squad, team }: { squad: Player[]; team: Team }) {
 
   return (
     <div>
-      <div className="pitch" style={pitchStyle} role="img" aria-label={`تشكيلة ${team.name} 4-3-3`}>
+      <div className="pitch" style={pitchStyle} role="img" aria-label={`تشكيلة ${team.name} ${label}`}>
         <i className="pbox top" aria-hidden="true" />
         <i className="pbox bot" aria-hidden="true" />
         {rows.map((row, ri) => (
           <div key={ri} className="pitch-row">
-            {row.map((p, ci) => (
-              <div key={ci} className="pl">
-                <span className={`dot${p ? '' : ' empty'}`}>{p ? p.number : '؟'}</span>
-                <span className="nm">{p ? p.name : 'قريباً'}</span>
-              </div>
+            {row.map((p) => (
+              <a key={p.id} className="pl" href={`#/player/${p.id}`}>
+                <span className="dot">{p.number}</span>
+                <span className="nm">{p.name}</span>
+              </a>
             ))}
           </div>
         ))}
       </div>
-      <p className="field-hint" style={{ textAlign: 'center', marginTop: 6 }}>التشكيلة 4-3-3 (تُحدَّث عند وصول القائمة الرسمية)</p>
+      <p className="field-hint" style={{ textAlign: 'center', marginTop: 6 }} dir="ltr">{label}</p>
       {subs.length > 0 && (
         <div className="subs">
           <h3>البدلاء</h3>

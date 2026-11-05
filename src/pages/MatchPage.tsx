@@ -1,6 +1,8 @@
 import type { CSSProperties } from 'react';
 import { GROUP_LABELS, MATCH_STATUS_LABELS, ROUND_LABELS } from '../data/config';
 import { eventsForMatch, formatArabicDate, playerById, teamById } from '../lib/stats';
+import { lineupFor } from '../lib/lineup';
+import { LineupPitch } from '../components/LineupPitch';
 import { usePhotos } from '../lib/usePhotos';
 import { useData } from '../store';
 import { EmptyState } from '../components/StateViews';
@@ -69,6 +71,35 @@ export function MatchPage({ matchId }: { matchId: string }) {
           <span><Icon name="pin" /> {match.venue}</span>
         </div>
       </section>
+
+      {(() => {
+        const sides = [home, away].map((t) => (t ? { team: t, lineup: lineupFor(state, match.id, t.id) } : null));
+        const any = sides.some((s) => s?.lineup);
+        if (!any && match.status !== 'scheduled') return null;
+        return (
+          <section className="section" aria-labelledby="lineups-title">
+            <div className="section-title"><h2 id="lineups-title">التشكيلتان</h2></div>
+            {!any ? (
+              <p className="notice" role="note">لم تُعلن التشكيلتان بعد، وتظهر هنا فور تسجيلهما قبل المباراة.</p>
+            ) : (
+              <div className="lineups-pair">
+                {sides.map((s) =>
+                  s ? (
+                    <div key={s.team.id}>
+                      <h3 className="lineup-team">{s.team.name}</h3>
+                      {s.lineup ? (
+                        <LineupPitch squad={state.players.filter((p) => p.teamId === s.team.id)} lineupIds={s.lineup.playerIds} team={s.team} />
+                      ) : (
+                        <p className="notice" role="note">لم تُعلن تشكيلة {s.team.nickname} بعد.</p>
+                      )}
+                    </div>
+                  ) : null,
+                )}
+              </div>
+            )}
+          </section>
+        );
+      })()}
 
       <section className="card section" aria-labelledby="goals-title">
         <h2 id="goals-title" style={{ fontSize: '1.3rem', color: 'var(--head)', marginBottom: 10 }}>الأهداف</h2>
