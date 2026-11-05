@@ -37,10 +37,11 @@ const LIFE: { date: string; title: string; hint: string }[] = [
   { date: SCHEDULE.roundDates[3][0], title: 'الجولة الثالثة', hint: 'حسم المتأهلين' },
 ];
 
-function countdownTarget(): { date: string; label: string } | null {
+function countdownTarget(drawn: boolean): { date: string; label: string } | null {
   const at = (d: string) => new Date(`${d}T00:00:00`).getTime();
   const now = Date.now();
-  if (now < at(TOURNAMENT.drawDate)) return { date: TOURNAMENT.drawDate, label: 'القرعة بعد' };
+  // لا نعرض عدّاد القرعة إذا ظهرت نتيجتها (المجموعات معبّأة) حتى لو لم يحن موعدها حسب ساعة الجهاز
+  if (!drawn && now < at(TOURNAMENT.drawDate)) return { date: TOURNAMENT.drawDate, label: 'القرعة بعد' };
   if (now < at(TOURNAMENT.startDate)) return { date: TOURNAMENT.startDate, label: 'صافرة البداية بعد' };
   return null;
 }
@@ -54,8 +55,8 @@ export function HomePage() {
   const latest = latestResults(state, 3);
   const upcoming = sortMatches(state.matches).filter((m) => m.status !== 'completed').slice(0, 3);
   const news = [...state.news].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 3);
-  const target = countdownTarget();
   const drawn = isDrawn(state);
+  const target = countdownTarget(drawn);
   const hour = new Date().getHours();
   const isNight = hour >= 18 || hour < 6;
 
