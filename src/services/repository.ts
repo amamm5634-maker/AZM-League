@@ -51,6 +51,8 @@ export interface TournamentRepository {
   completeMatch(matchId: string): Promise<Result<TournamentState>>;
   setManOfMatch(matchId: string, playerId: string | null): Promise<Result<TournamentState>>;
   reset(): Promise<Result<TournamentState>>;
+  /** يسجّل التشكيلة الأساسية (11 لاعباً) لفريق في مباراة. للمسجّل والأدمن؛ تُقفل عند بداية المباراة إلا للأدمن */
+  saveLineup(matchId: string, teamId: string, playerIds: string[]): Promise<Result<TournamentState>>;
   addNews(input: NewsInput): Promise<Result<TournamentState>>;
   deleteNews(id: string): Promise<Result<TournamentState>>;
 

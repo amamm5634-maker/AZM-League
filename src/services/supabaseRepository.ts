@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { EventInput, GalleryPhoto, Match, MatchEvent, MatchMessage, NewsItem, PredictionChoice, PredictionCounts, TournamentState } from '../types';
+import type { EventInput, GalleryPhoto, Lineup, Match, MatchEvent, MatchMessage, NewsItem, PredictionChoice, PredictionCounts, TournamentState } from '../types';
 import { buildSeed } from '../data/seed';
 import { adjustScore } from '../lib/scoring';
 import { validateEventInput, validateScore } from '../lib/validation';
@@ -32,8 +32,21 @@ interface PhotoRow {
   created_at: string;
   round_pick?: number | null;
 }
+interface LineupRow { match_id: string; team_id: string; player_ids: string[]; updated_at: string | null }
 interface MessageRow { id: string; match_id: string; author: string; body: string; status: MatchMessage['status']; created_at: string }
 interface NewsRow { id: string; title: string; summary: string; tag: string; image_url: string | null; published_at: string }
+
+/** رسائل عربية لأخطاء حفظ التشكيلة القادمة من دالة save_lineup */
+export function lineupError(error: DbError): { ok: false; error: string } {
+  const msg = error?.message ?? '';
+  if (/locked/i.test(msg)) return { ok: false, error: 'التشكيلة مقفولة لأن المباراة بدأت. اطلب من الأدمن تعديلها.' };
+  if (/player_not_in_team|invalid_players/i.test(msg)) return { ok: false, error: 'التشكيلة غير صالحة: اختر 11 لاعباً مختلفاً من قائمة الفريق نفسه.' };
+  if (/invalid_match|invalid_team/i.test(msg)) return { ok: false, error: 'المباراة أو الفريق غير صحيح.' };
+  if (error?.code === 'PGRST202' || /could not find the function|schema cache/i.test(msg)) {
+    return { ok: false, error: 'ميزة التشكيلات لم تُفعَّل بعد: شغّل ملف lineups.sql في Supabase (SQL Editor) مرة واحدة.' };
+  }
+  return fail(error, 'تعذّر حفظ التشكيلة.');
+}
 
 /**
  * تخزين حي في Supabase. المحتوى الثابت (الكليات، اللاعبون، الجدول) من ملفات البيانات،
@@ -65,16 +78,18 @@ export class SupabaseRepository implements TournamentRepository {
         .select('id,match_id,team_id,scorer_id,assist_id,minute')
         .order('created_at', { ascending: true }),
       this.db.from('news').select('id,title,summary,tag,image_url,published_at').order('published_at', { ascending: false }),
+      // التشكيلات: إن لم يُشغَّل lineups.sql بعد فالجدول غير موجود، ولا نريد أن يتعطل الموقع بسببه (نتجاهل الخطأ)
+      this.db.from('match_lineups').select('match_id,team_id,player_ids,updated_at'),
     ]);
   }
 
   async load(): Promise<TournamentState> {
     const fresh = this.seedFn();
-    let [ms, ev, nw] = await this.fetchAll();
+    let [ms, ev, nw, ln] = await this.fetchAll();
     const expired = [ms.error, ev.error, nw.error].some((e) => e && /jwt|expired/i.test(e.message));
     if (expired) {
       await this.recoverSession();
-      [ms, ev, nw] = await this.fetchAll();
+      [ms, ev, nw, ln] = await this.fetchAll();
     }
     const err = ms.error ?? ev.error ?? nw.error;
     if (err) throw new Error(err.message);
@@ -104,7 +119,13 @@ export class SupabaseRepository implements TournamentRepository {
       date: n.published_at,
       image: n.image_url ?? undefined,
     }));
-    return { ...fresh, matches, events, news: [...dbNews, ...fresh.news] };
+    const playerIds = new Set(fresh.players.map((x) => x.id));
+    const lineups: Lineup[] = ln.error || !ln.data
+      ? []
+      : (ln.data as LineupRow[])
+          .filter((l) => matchIds.has(l.match_id) && l.player_ids.every((id) => playerIds.has(id)))
+          .map((l) => ({ matchId: l.match_id, teamId: l.team_id, playerIds: l.player_ids, updatedAt: l.updated_at ?? undefined }));
+    return { ...fresh, matches, events, lineups, news: [...dbNews, ...fresh.news] };
   }
 
   private async done(message: string): Promise<Result<TournamentState>> {
@@ -385,6 +406,12 @@ export class SupabaseRepository implements TournamentRepository {
     const { error } = await this.db.from('match_messages').update({ status }).eq('id', id);
     if (error) return fail(error, 'تعذّر حفظ القرار.');
     return { ok: true, data: undefined, message: status === 'approved' ? 'تم قبول الرسالة.' : 'تم رفض الرسالة.' };
+  }
+
+  async saveLineup(matchId: string, teamId: string, playerIds: string[]): Promise<Result<TournamentState>> {
+    const { error } = await this.db.rpc('save_lineup', { p_match: matchId, p_team: teamId, p_players: playerIds });
+    if (error) return lineupError(error);
+    return this.done('تم حفظ التشكيلة.');
   }
 
   async setRoundPhoto(id: string, round: number | null): Promise<Result> {

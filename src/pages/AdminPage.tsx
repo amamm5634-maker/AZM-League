@@ -12,6 +12,7 @@ import { NewsAdmin } from './NewsAdmin';
 import { PhotosAdmin } from './PhotosAdmin';
 import { StaffAdmin } from './StaffAdmin';
 import { MessagesAdmin } from './MessagesAdmin';
+import { LineupsAdmin } from './LineupsAdmin';
 import { tabsForRole, type AdminTab } from '../lib/roles';
 import { GateOpening, GateScene } from '../components/Gate';
 import '../admin.css';
@@ -154,6 +155,8 @@ function Panel({ role, who, onLogout }: { role: Role; who: string; onLogout: () 
         <StaffAdmin />
       ) : tab === 'quick' ? (
         <QuickScorer />
+      ) : tab === 'lineups' ? (
+        <LineupsAdmin isAdmin={role === 'admin'} />
       ) : (
         <Dashboard />
       )}

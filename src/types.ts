@@ -46,6 +46,14 @@ export interface MatchEvent {
   minute?: number;
 }
 
+/** التشكيلة الأساسية (11 لاعباً) لفريق في مباراة، يسجّلها مسجّل المباراة. الباقي من قائمة الفريق = البدلاء */
+export interface Lineup {
+  matchId: string;
+  teamId: string;
+  playerIds: string[]; // 11 معرّفاً من لاعبي الفريق نفسه
+  updatedAt?: string; // ISO
+}
+
 export interface NewsItem {
   id: string;
   title: string;
@@ -61,6 +69,8 @@ export interface TournamentState {
   matches: Match[];
   events: MatchEvent[];
   news: NewsItem[];
+  /** التشكيلات المسجّلة للمباريات. اختياري: الغائب = لا تشكيلات بعد */
+  lineups?: Lineup[];
   /** النقاط التأديبية لكل فريق (teamId ← نقاط؛ الأقل أفضل). تُستخدم في كسر التعادل بعد فارق الأهداف. اختياري: الغائب = 0 */
   discipline?: Record<string, number>;
 }

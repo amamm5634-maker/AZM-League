@@ -76,16 +76,18 @@ export const TEAMS: Team[] = buildTeams();
 function buildPlayers(teams: Team[]): Player[] {
   const players: Player[] = [];
   for (const team of teams) {
-    for (const entry of ROSTERS[team.nickname] ?? []) {
+    // المعرّف يعتمد على ترتيب اللاعب في القائمة لا على رقم القميص، فتغيير الأرقام لا يكسر الأهداف والتشكيلات المحفوظة.
+    // لذلك أضف اللاعبين الجدد في آخر القائمة ولا تغيّر ترتيب الموجودين بعد بدء الدوري.
+    (ROSTERS[team.nickname] ?? []).forEach((entry, i) => {
       players.push({
-        id: `${team.id}-n${entry.number}`,
+        id: `${team.id}-p${String(i + 1).padStart(2, '0')}`,
         teamId: team.id,
         name: entry.name,
         number: entry.number,
         position: entry.position,
         photo: entry.photo,
       });
-    }
+    });
   }
   return players;
 }
@@ -134,6 +136,7 @@ export function buildSeed(): TournamentState {
     players: buildPlayers(teams),
     matches: buildMatches(teams),
     events: [],
+    lineups: [],
     news: NEWS.map((n) => ({ ...n })),
   };
 }

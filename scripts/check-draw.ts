@@ -32,7 +32,7 @@ expect(st.A.length === 4 && st.D.length === 4, 'جداول الترتيب ناق
 const eng = s.teams.find((t) => t.nickname === 'هندسة')!;
 // نفحص فريق هندسة فقط (فيه 3 لاعبين مُدخلين هنا)؛ قوائم الكليات الحقيقية في rosters.ts لا تؤثر على الفحص
 const engPlayers = s.players.filter((p) => p.teamId === eng.id);
-expect(engPlayers.length === 3 && engPlayers[0].id === `${eng.id}-n1`, 'توليد اللاعبين غير صحيح');
+expect(engPlayers.length === 3 && engPlayers[0].id === `${eng.id}-p01`, 'توليد اللاعبين غير صحيح');
 const { rows, subs } = pickLineup(s.players.filter((p) => p.teamId === eng.id));
 expect(rows.flat().filter(Boolean).length === 2 && subs.length === 1, 'اختيار التشكيلة غير صحيح');
 expect(rows[3][0]?.name === 'حارس 1', 'الحارس يجب أن يكون في الخلف');

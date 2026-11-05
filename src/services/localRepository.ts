@@ -2,6 +2,7 @@ import type { EventInput, GalleryPhoto, Match, MatchEvent, MatchMessage, Predict
 import { buildSeed } from '../data/seed';
 import { validateEventInput, validateScore } from '../lib/validation';
 import { adjustScore } from '../lib/scoring';
+import { validateLineup } from '../lib/lineup';
 import type { NewsInput, PhotoInput, PhotoPage, PhotoQuery, PhotoUsage, Result, TournamentRepository } from './repository';
 
 export const STORAGE_KEY = 'azm-league:v2';
@@ -29,7 +30,8 @@ function merge(fresh: TournamentState, stored: TournamentState): TournamentState
   const matchIds = new Set(matches.map((m) => m.id));
   const playerIds = new Set(fresh.players.map((p) => p.id));
   const events = stored.events.filter((e) => matchIds.has(e.matchId) && playerIds.has(e.scorerId));
-  return { ...fresh, matches, events };
+  const lineups = (stored.lineups ?? []).filter((l) => matchIds.has(l.matchId) && l.playerIds.every((id) => playerIds.has(id)));
+  return { ...fresh, matches, events, lineups };
 }
 
 /**
@@ -168,6 +170,17 @@ export class LocalStorageRepository implements TournamentRepository {
     }
     match.motmId = playerId ?? undefined;
     return this.commit(state, playerId ? 'تم حفظ أفضل لاعب في المباراة.' : 'تم إلغاء اختيار أفضل لاعب.');
+  }
+
+  async saveLineup(matchId: string, teamId: string, playerIds: string[]): Promise<Result<TournamentState>> {
+    const state = clone(this.read());
+    const match = state.matches.find((m) => m.id === matchId);
+    if (!match || (match.homeId !== teamId && match.awayId !== teamId)) return { ok: false, error: 'الفريق ليس طرفاً في هذه المباراة.' };
+    const problem = validateLineup(state.players.filter((p) => p.teamId === teamId), playerIds);
+    if (problem) return { ok: false, error: problem };
+    const rest = (state.lineups ?? []).filter((l) => !(l.matchId === matchId && l.teamId === teamId));
+    state.lineups = [...rest, { matchId, teamId, playerIds: [...playerIds], updatedAt: new Date().toISOString() }];
+    return this.commit(state, 'تم حفظ التشكيلة.');
   }
 
   async reset(): Promise<Result<TournamentState>> {
