@@ -460,6 +460,8 @@ td.num-hi { font-family: var(--font-display); font-size: 1.25rem; color: var(--l
 /* ---------- التذييل ---------- */
 .site-footer { background: #03070b; color: var(--muted); padding-block: 22px 92px; font-size: 0.9rem; border-top: 1px solid var(--line); }
 .site-footer a { color: var(--lime); font-weight: 700; }
+.footer-dev { display: inline-flex; align-items: center; gap: 10px; }
+.footer-dev img { width: 52px; height: auto; flex: none; }
 .site-footer .row { display: flex; flex-wrap: wrap; gap: 8px 20px; justify-content: space-between; }
 
 /* ---------- 10. الوضع الفاتح (لوحة الإدارة فقط) ---------- */

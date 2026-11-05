@@ -194,7 +194,10 @@ export default function App() {
         <div className="container"><SponsorsFooter /></div>
         <div className="container row">
           <span>{TOURNAMENT.name} — {TOURNAMENT.university}</span>
-          <span>تطوير تقني: {TOURNAMENT.technicalDevelopment}</span>
+          <span className="footer-dev">
+            <img src={`${import.meta.env.BASE_URL}logos/cs-college.png`} alt="شعار كلية علوم الحاسوب والرياضيات" width="52" height="51" loading="lazy" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+            <span>تطوير تقني: {TOURNAMENT.technicalDevelopment}</span>
+          </span>
           <a href="#/about">للتواصل ومعلومات الدوري</a>
         </div>
       </footer>
