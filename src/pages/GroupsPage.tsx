@@ -10,7 +10,7 @@ export function GroupsPage() {
   if (!isDrawn(state)) {
     return (
       <>
-        <PageHead title="القرعة والمجموعات" subtitle="16 كلية في 4 مجموعات، في كل مجموعة 4 كليات." />
+        <PageHead title="القرعة والمجموعات" subtitle="16 فريقاً في 4 مجموعات، في كل مجموعة 4 فرق." />
         <p className="notice" role="note">
           تُقام القرعة يوم {formatArabicDate(TOURNAMENT.drawDate)} بحضور ممثلي الكليات، وتظهر المجموعات هنا فور إعلانها.
         </p>
@@ -29,7 +29,7 @@ export function GroupsPage() {
 
   return (
     <>
-      <PageHead title="القرعة والمجموعات" subtitle="نتيجة القرعة: 4 مجموعات، في كل مجموعة 4 كليات." />
+      <PageHead title="القرعة والمجموعات" subtitle="نتيجة القرعة: 4 مجموعات، في كل مجموعة 4 فرق." />
       <div className="groups-grid">
         {GROUP_IDS.map((g) => (
           <section key={g} className="card group-card" aria-labelledby={`g-${g}`}>

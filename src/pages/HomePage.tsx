@@ -26,7 +26,7 @@ import { SponsorsSection } from '../components/Sponsors';
 const QUICK_LINKS: { href: string; title: string; hint: string; icon: IconName }[] = [
   { href: '#/fixtures', title: 'المباريات والنتائج', hint: 'الجدول الكامل مع الفلاتر', icon: 'calendar' },
   { href: '#/standings', title: 'الترتيب', hint: 'جداول المجموعات الأربع', icon: 'table' },
-  { href: '#/teams', title: 'الفرق واللاعبون', hint: '16 كلية وتشكيلاتها', icon: 'users' },
+  { href: '#/teams', title: 'الفرق واللاعبون', hint: '16 فريقاً وتشكيلاتها', icon: 'users' },
   { href: '#/scorers', title: 'الهدافون', hint: 'الأهداف وصناعة الأهداف', icon: 'trophy' },
 ];
 

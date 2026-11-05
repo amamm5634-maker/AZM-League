@@ -7,7 +7,6 @@ import { ErrorBox, Loading, EmptyState } from './components/StateViews';
 import { Icon, type IconName } from './components/Icon';
 import { Logo } from './components/Logo';
 import { SponsorsFooter } from './components/Sponsors';
-import { formatArabicDate } from './lib/stats';
 import { MatchPage } from './pages/MatchPage';
 import { MorePage } from './pages/MorePage';
 import { PlayerPage } from './pages/PlayerPage';
@@ -168,7 +167,7 @@ export default function App() {
             <MusicButton />
             <a className="icon-btn" href="#/search" aria-label="بحث"><Icon name="search" /></a>
             <a className="btn btn-primary nav-cta" href="#/groups">
-              القرعة {formatArabicDate(TOURNAMENT.drawDate)}
+              المجموعات
             </a>
           </div>
         </div>

@@ -11,8 +11,9 @@ import { ROSTERS } from './rosters';
 const COLLEGES: { nickname: string; name: string; short: string; color: string; logo?: string }[] = [
   { nickname: 'هندسة', name: 'كلية الهندسة', short: 'هن', color: '#1d4ed8' },
   { nickname: 'جيولوجيا', name: 'كلية الجيولوجيا', short: 'جيو', color: '#92400e' },
-  { nickname: 'تمريض', name: 'كلية التمريض', short: 'تمر', color: '#be185d' },
-  { nickname: 'مختبرات', name: 'كلية المختبرات', short: 'مخت', color: '#0e7490' },
+  // فريق واحد من كليتين (المختبرات والتمريض). ترتيب هذه القائمة يحدد معرّفات الفرق t01..t16 فلا تغيّره بعد بدء الدوري
+  { nickname: 'مختبرات وتمريض', name: 'فريق المختبرات والتمريض', short: 'مخت', color: '#0e7490' },
+  { nickname: 'إنتاج حيواني', name: 'كلية الإنتاج الحيواني', short: 'إنت', color: '#65a30d' },
   { nickname: 'لغات', name: 'كلية اللغات', short: 'لغ', color: '#7c3aed' },
   { nickname: 'تربية', name: 'كلية التربية', short: 'ترب', color: '#15803d' },
   { nickname: 'قانون', name: 'كلية القانون', short: 'قان', color: '#1e293b' },
@@ -30,7 +31,7 @@ const COLLEGES: { nickname: string; name: string; short: string; color: string; 
 export const NEWS: NewsItem[] = [
   {
     id: 'n1',
-    title: 'انطلاق دوري عزم بمشاركة 16 كلية من جامعة بحري',
+    title: 'انطلاق دوري عزم بمشاركة 16 فريقاً من جامعة بحري',
     summary:
       'دوري عام يضم جميع كليات جامعة بحري دفعة 23/24، في 4 مجموعات تضم كل منها 4 كليات، وتلعب كل كلية 3 مباريات في دور المجموعات.',
     date: '2026-11-02',

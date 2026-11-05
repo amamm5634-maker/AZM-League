@@ -4,7 +4,7 @@ import { Icon } from '../components/Icon';
 import { PageHead } from '../components/StateViews';
 
 const FAQ: { q: string; a: string }[] = [
-  { q: 'متى موعد القرعة؟', a: `تُجرى القرعة يوم ${formatArabicDate(TOURNAMENT.drawDate)} بحضور ممثلي الكليات.` },
+  { q: 'متى أُجريت القرعة؟', a: `أُجريت القرعة يوم ${formatArabicDate(TOURNAMENT.drawDate)} بحضور ممثلي الكليات، والمجموعات في صفحة القرعة.` },
   { q: 'أين تقام المباريات؟', a: TOURNAMENT.venue },
   { q: 'كيف أتابع النتائج؟', a: 'تُنشر النتائج والترتيب والهدافون هنا فور انتهاء كل مباراة.' },
 ];
