@@ -40,8 +40,7 @@ export const ROSTERS: Record<string, RosterEntry[]> = {
       number: 11,
       position: 'وسط',
       photo: 'players/cs-imam-day.jpg',
-      // من 6 مساءً إلى 6 صباحاً: صورة قميص إيطاليا
-      photos: [{ src: 'players/cs-imam-night.jpg', from: 18, to: 6 }],
+      // لاحقاً: صورة ليلية بإضافة photos: [{ src: '...', from: 18, to: 6 }]
     },
     { name: 'غسان بكري محمد عثمان', number: 12, position: 'وسط', photo: 'players/cs-ghassan.jpg' },
     { name: 'أحمد محمد أحمد', number: 13, position: 'وسط' },
