@@ -156,7 +156,7 @@ function Panel({ role, who, onLogout }: { role: Role; who: string; onLogout: () 
       ) : tab === 'quick' ? (
         <QuickScorer />
       ) : tab === 'lineups' ? (
-        <LineupsAdmin isAdmin={isAdmin} />
+        <LineupsAdmin isAdmin={role === 'admin'} />
       ) : (
         <Dashboard isAdmin={role === 'admin'} />
       )}
