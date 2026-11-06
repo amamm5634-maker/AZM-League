@@ -50,6 +50,8 @@ export interface TournamentRepository {
   setScore(matchId: string, home: number, away: number): Promise<Result<TournamentState>>;
   completeMatch(matchId: string): Promise<Result<TournamentState>>;
   setManOfMatch(matchId: string, playerId: string | null): Promise<Result<TournamentState>>;
+  /** للأدمن فقط: يرجّع المباراة لحالتها الأولى (لم تبدأ، 0-0، بلا أهداف ولا أفضل لاعب). التشكيلات تبقى */
+  resetMatch(matchId: string): Promise<Result<TournamentState>>;
   reset(): Promise<Result<TournamentState>>;
   /** يسجّل التشكيلة الأساسية (11 لاعباً) لفريق في مباراة. للمسجّل والأدمن؛ تُقفل عند بداية المباراة إلا للأدمن */
   saveLineup(matchId: string, teamId: string, playerIds: string[]): Promise<Result<TournamentState>>;

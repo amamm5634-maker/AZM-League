@@ -172,6 +172,18 @@ export class LocalStorageRepository implements TournamentRepository {
     return this.commit(state, playerId ? 'تم حفظ أفضل لاعب في المباراة.' : 'تم إلغاء اختيار أفضل لاعب.');
   }
 
+  async resetMatch(matchId: string): Promise<Result<TournamentState>> {
+    const state = clone(this.read());
+    const match = state.matches.find((m) => m.id === matchId);
+    if (!match) return { ok: false, error: 'يرجى اختيار المباراة.' };
+    match.homeScore = 0;
+    match.awayScore = 0;
+    match.status = 'scheduled';
+    match.motmId = undefined;
+    state.events = state.events.filter((e) => e.matchId !== matchId);
+    return this.commit(state, 'أُعيدت المباراة إلى حالتها الأولى.');
+  }
+
   async saveLineup(matchId: string, teamId: string, playerIds: string[]): Promise<Result<TournamentState>> {
     const state = clone(this.read());
     const match = state.matches.find((m) => m.id === matchId);

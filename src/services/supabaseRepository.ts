@@ -408,6 +408,19 @@ export class SupabaseRepository implements TournamentRepository {
     return { ok: true, data: undefined, message: status === 'approved' ? 'تم قبول الرسالة.' : 'تم رفض الرسالة.' };
   }
 
+  async resetMatch(matchId: string): Promise<Result<TournamentState>> {
+    const { error } = await this.db.rpc('reset_match', { p_match: matchId });
+    if (error) {
+      const text = `${error.code ?? ''} ${error.message ?? ''}`;
+      if (/42883|PGRST202|reset_match/.test(text) && !/not authorized/.test(text)) {
+        return { ok: false, error: 'شغّل ملف supabase/reset-match.sql مرة واحدة في Supabase SQL Editor ثم أعد المحاولة.' };
+      }
+      if (/42501|not authorized/.test(text)) return { ok: false, error: 'هذه العملية للأدمن فقط.' };
+      return fail(error, 'تعذّر إعادة المباراة.');
+    }
+    return this.done('أُعيدت المباراة إلى حالتها الأولى.');
+  }
+
   async saveLineup(matchId: string, teamId: string, playerIds: string[]): Promise<Result<TournamentState>> {
     const { error } = await this.db.rpc('save_lineup', { p_match: matchId, p_team: teamId, p_players: playerIds });
     if (error) return lineupError(error);

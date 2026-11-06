@@ -41,6 +41,7 @@ export interface Actions {
   completeMatch(matchId: string): Applied;
   setManOfMatch(matchId: string, playerId: string | null): Applied;
   reset(): Applied;
+  resetMatch(matchId: string): Applied;
   saveLineup(matchId: string, teamId: string, playerIds: string[]): Applied;
   addNews(input: NewsInput): Applied;
   deleteNews(id: string): Applied;
@@ -139,6 +140,7 @@ export function TournamentProvider({ children }: { children: ReactNode }) {
       completeMatch: (matchId) => apply(repository.completeMatch(matchId)),
       setManOfMatch: (matchId, playerId) => apply(repository.setManOfMatch(matchId, playerId)),
       reset: () => apply(repository.reset()),
+      resetMatch: (matchId) => apply(repository.resetMatch(matchId)),
       saveLineup: (matchId, teamId, playerIds) => apply(repository.saveLineup(matchId, teamId, playerIds)),
       addNews: (input) => apply(repository.addNews(input)),
       deleteNews: (id) => apply(repository.deleteNews(id)),

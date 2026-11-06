@@ -156,9 +156,9 @@ function Panel({ role, who, onLogout }: { role: Role; who: string; onLogout: () 
       ) : tab === 'quick' ? (
         <QuickScorer />
       ) : tab === 'lineups' ? (
-        <LineupsAdmin isAdmin={role === 'admin'} />
+        <LineupsAdmin isAdmin={isAdmin} />
       ) : (
-        <Dashboard />
+        <Dashboard isAdmin={role === 'admin'} />
       )}
     </>
   );
@@ -218,7 +218,7 @@ function Login({ onSuccess }: { onSuccess: () => void }) {
 }
 
 /* ---------------- لوحة التحكم ---------------- */
-function Dashboard() {
+function Dashboard({ isAdmin }: { isAdmin: boolean }) {
   const state = useData();
   const { actions } = useTournament();
   const [filter, setFilter] = useState<'all' | MatchStatus>('all');
@@ -330,7 +330,7 @@ function Dashboard() {
 
         <div ref={panelRef}>
           {selected ? (
-            <MatchPanel key={selected.id} match={selected} run={run} busy={busy} />
+            <MatchPanel key={selected.id} match={selected} run={run} busy={busy} isAdmin={isAdmin} />
           ) : (
             <EmptyState title="اختر مباراة للإدارة" hint="اضغط على أي مباراة من القائمة لتسجيل نتيجتها وأهدافها." />
           )}
@@ -378,7 +378,7 @@ interface EventForm {
   minute: string;
 }
 
-function MatchPanel({ match, run, busy }: { match: Match; run: Run; busy: boolean }) {
+function MatchPanel({ match, run, busy, isAdmin }: { match: Match; run: Run; busy: boolean; isAdmin: boolean }) {
   const state = useData();
   const { actions } = useTournament();
   const home = teamById(state, match.homeId);
@@ -390,6 +390,7 @@ function MatchPanel({ match, run, busy }: { match: Match; run: Run; busy: boolea
   const [form, setForm] = useState<EventForm>({ teamId: match.homeId, scorerId: '', assistId: '', minute: '' });
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [confirmMatchReset, setConfirmMatchReset] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
 
   // تزامن حقول النتيجة عند تغيّرها بسبب تسجيل/حذف هدف
@@ -452,6 +453,11 @@ function MatchPanel({ match, run, busy }: { match: Match; run: Run; busy: boolea
   };
 
   const finish = () => run(actions.completeMatch(match.id));
+  const doMatchReset = async () => {
+    const result = await run(actions.resetMatch(match.id));
+    setConfirmMatchReset(false);
+    if (result.ok) resetForm();
+  };
 
   return (
     <div className="admin-panel" style={{ display: 'grid', gap: 16 }}>
@@ -484,6 +490,18 @@ function MatchPanel({ match, run, busy }: { match: Match; run: Run; busy: boolea
           </div>
         </form>
       </section>
+
+      {isAdmin && (
+        <section className="card" aria-labelledby="mreset-title">
+          <h2 id="mreset-title">إعادة المباراة لحالتها الأولى</h2>
+          <p className="field-hint">يمسح أهدافها ونتيجتها وأفضل لاعب ويرجّعها «لم تبدأ». التشكيلات المسجّلة تبقى. للأدمن فقط.</p>
+          <div className="form-actions" style={{ marginTop: 10 }}>
+            <button type="button" className="btn btn-danger" disabled={busy || (match.status === 'scheduled' && match.homeScore === 0 && match.awayScore === 0)} onClick={() => setConfirmMatchReset(true)}>
+              إعادة المباراة
+            </button>
+          </div>
+        </section>
+      )}
 
       <section className="card" aria-labelledby="motm-title">
         <h2 id="motm-title">أفضل لاعب في المباراة</h2>
@@ -600,6 +618,18 @@ function MatchPanel({ match, run, busy }: { match: Match; run: Run; busy: boolea
           </ul>
         )}
       </section>
+
+      <ConfirmDialog
+        open={confirmMatchReset}
+        title="إعادة المباراة"
+        confirmLabel="نعم، أعدها"
+        danger
+        busy={busy}
+        onConfirm={doMatchReset}
+        onCancel={() => setConfirmMatchReset(false)}
+      >
+        سيتم حذف كل أهداف هذه المباراة ونتيجتها وأفضل لاعب فيها، وتعود «لم تبدأ». هل أنت متأكد؟
+      </ConfirmDialog>
 
       <ConfirmDialog
         open={deleteId !== null}
