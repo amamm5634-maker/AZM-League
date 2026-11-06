@@ -10,6 +10,7 @@ import { Icon } from '../components/Icon';
 import { LineupPitch } from '../components/LineupPitch';
 import { MatchCard } from '../components/MatchCard';
 import { PlayerCard } from '../components/PlayerCard';
+import { computeAwards } from '../lib/awards';
 import { EmptyState, PageHead } from '../components/StateViews';
 import { TeamBadge } from '../components/TeamBadge';
 
@@ -76,6 +77,7 @@ export function TeamsPage() {
 
 export function TeamDetailPage({ teamId }: { teamId: string }) {
   const state = useData();
+  const awards = computeAwards(state);
   const team = teamById(state, teamId);
 
   if (!team) {
@@ -146,7 +148,7 @@ export function TeamDetailPage({ teamId }: { teamId: string }) {
           <div className="players-grid">
             {squad.map((p) => {
               const s = stats.find((x) => x.playerId === p.id);
-              return <PlayerCard key={p.id} player={p} team={team} goals={s?.goals ?? 0} assists={s?.assists ?? 0} />;
+              return <PlayerCard key={p.id} player={p} team={team} goals={s?.goals ?? 0} assists={s?.assists ?? 0} awards={awards[p.id]} />;
             })}
           </div>
         </section>

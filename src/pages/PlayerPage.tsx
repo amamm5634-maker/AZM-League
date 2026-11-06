@@ -3,6 +3,7 @@ import { useData } from '../store';
 import { EmptyState } from '../components/StateViews';
 import { Icon } from '../components/Icon';
 import { PlayerCard } from '../components/PlayerCard';
+import { computeAwards } from '../lib/awards';
 import { ShareButton } from '../components/ShareButton';
 import { TeamBadge } from '../components/TeamBadge';
 
@@ -23,7 +24,7 @@ export function PlayerPage({ playerId }: { playerId: string }) {
       <a className="back-link" href={`#/teams/${player.teamId}`}><Icon name="back" /> {team?.name}</a>
       <section className="player-hero">
         <div className="ph-card">
-          <PlayerCard player={player} team={team} goals={goals} assists={assists} link={false} />
+          <PlayerCard player={player} team={team} goals={goals} assists={assists} link={false} awards={computeAwards(state)[player.id]} />
         </div>
         <div className="ph-info">
           <h1>{player.name}</h1>

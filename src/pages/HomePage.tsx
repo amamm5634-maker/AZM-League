@@ -20,6 +20,7 @@ import { Icon, type IconName } from '../components/Icon';
 import { MatchCard } from '../components/MatchCard';
 import { PhotoGrid } from '../components/PhotoGrid';
 import { PlayerCard } from '../components/PlayerCard';
+import { computeAwards } from '../lib/awards';
 import { EmptyState } from '../components/StateViews';
 import { TeamBadge } from '../components/TeamBadge';
 import { RollingBall } from '../components/RollingBall';
@@ -50,6 +51,7 @@ function countdownTarget(drawn: boolean): { date: string; label: string } | null
 
 export function HomePage() {
   const state = useData();
+  const awards = computeAwards(state);
   const { photos: latestPhotos } = usePhotos({ limit: 6 });
   const nameParts = TOURNAMENT.name.split(' ');
   const wordMain = nameParts.length > 1 ? nameParts.slice(1).join(' ') : nameParts[0];
@@ -236,7 +238,7 @@ export function HomePage() {
           <div className="players-grid">
             {stars.map((s) => {
               const p = playerById(state, s.playerId);
-              return p ? <PlayerCard key={p.id} player={p} team={teamById(state, p.teamId)} goals={s.goals} assists={s.assists} /> : null;
+              return p ? <PlayerCard key={p.id} player={p} team={teamById(state, p.teamId)} goals={s.goals} assists={s.assists} awards={awards[p.id]} /> : null;
             })}
           </div>
         </section>
