@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react';
 import { SCHEDULE, STATUS_LABELS, TOURNAMENT } from '../data/config';
 import {
   computePlayerStats,
@@ -57,8 +58,6 @@ export function HomePage() {
   const news = [...state.news].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 3);
   const drawn = isDrawn(state);
   const target = countdownTarget(drawn);
-  const hour = new Date().getHours();
-  const isNight = hour >= 18 || hour < 6;
 
   const start = new Date(`${TOURNAMENT.startDate}T12:00:00`);
   const startMonth = start.toLocaleDateString('ar-EG-u-nu-latn', { month: 'long' });
@@ -184,8 +183,7 @@ export function HomePage() {
         </section>
       )}
 
-      <section className="section league-life" aria-labelledby="life-title">
-        {isNight && <img className="league-floodlight" src={`${import.meta.env.BASE_URL}images/floodlight-night.jpg`} alt="" aria-hidden="true" />}
+      <section className="section league-life" aria-labelledby="life-title" style={{ '--life-photo': `url("${import.meta.env.BASE_URL}images/lights-fog.jpg")` } as CSSProperties}>
         <div className="section-title"><h2 id="life-title">حياة الدوري</h2></div>
         <ol className="timeline">
           {LIFE.map((l) => (

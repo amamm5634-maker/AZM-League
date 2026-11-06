@@ -14,7 +14,7 @@ export function LineupPitch({ squad, lineupIds, team, marks }: { squad: Player[]
   const { rows, label, subs } = buildFormation(squad, lineupIds);
   const pitchStyle = {
     '--tc': team.color,
-    '--pitch-photo': `url("${import.meta.env.BASE_URL}images/field-aerial-v.jpg")`,
+    '--pitch-photo': `url("${import.meta.env.BASE_URL}images/field-lineup.jpg")`,
   } as CSSProperties;
 
   return (

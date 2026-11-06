@@ -1,10 +1,17 @@
-import { useCallback, useEffect, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useState, type CSSProperties, type FormEvent } from 'react';
 import { repository } from '../services';
 import { deviceId } from '../lib/device';
 import { formatArabicDate } from '../lib/stats';
 import type { MatchMessage } from '../types';
 
 const MAX = 140;
+
+/** من 6 مساءً إلى 6 صباحاً نعرض المدرجات الليلية، وفي النهار مدرجات الغروب */
+function standsPhoto(): string {
+  const h = new Date().getHours();
+  const night = h >= 18 || h < 6;
+  return `url("${import.meta.env.BASE_URL}images/${night ? 'stands-night' : 'stands-sunset'}.jpg")`;
+}
 
 /** مدرجات المباراة: رسائل تشجيع من الجمهور تظهر بعد موافقة الإدارة */
 export function MatchMessages({ matchId }: { matchId: string }) {
@@ -42,7 +49,7 @@ export function MatchMessages({ matchId }: { matchId: string }) {
   };
 
   return (
-    <section className="section stands" aria-labelledby="stands-title">
+    <section className="section stands" aria-labelledby="stands-title" style={{ '--stands-photo': standsPhoto() } as CSSProperties}>
       <div className="section-title"><h2 id="stands-title">مدرجات المباراة</h2></div>
       <form className="card stands-form" onSubmit={submit} noValidate>
         <div className="field">
