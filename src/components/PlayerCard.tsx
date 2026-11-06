@@ -1,6 +1,7 @@
 import { useState, type CSSProperties } from 'react';
 import type { Player, Team } from '../types';
 import { TeamBadge } from './TeamBadge';
+import { photoFor } from '../lib/playerPhoto';
 
 function Silhouette() {
   return (
@@ -22,18 +23,19 @@ interface Props {
 /** بطاقة لاعب بأسلوب بطاقات كرة القدم الأوروبية: الرقم والمركز والشارة، ثم الصورة، ثم الاسم والإحصاءات */
 export function PlayerCard({ player, team, goals = 0, assists = 0, link = true }: Props) {
   const [broken, setBroken] = useState(false);
-  const showPhoto = !!player.photo && !broken;
+  const photo = photoFor(player);
+  const showPhoto = !!photo && !broken;
 
   return (
     <article
-      className="pcard"
+      className={`pcard${player.cardStyle === 'fifa' ? ' fifa' : ''}`}
       style={{ '--tc': team?.color ?? '#0e6b47' } as CSSProperties}
       aria-label={`${player.name}، ${player.position}، رقم ${player.number}`}
     >
       {showPhoto ? (
         <img
           className="pimg"
-          src={`${import.meta.env.BASE_URL}${player.photo}`}
+          src={`${import.meta.env.BASE_URL}${photo}`}
           alt=""
           loading="lazy"
           onError={() => setBroken(true)}
@@ -46,6 +48,7 @@ export function PlayerCard({ player, team, goals = 0, assists = 0, link = true }
         <div className="pc-id">
           <span className="pnum">{player.number}</span>
           <span className="ppos">{player.position}</span>
+          {player.cardStyle === 'fifa' && <span className="sd-flag" aria-hidden="true" />}
         </div>
         <TeamBadge team={team} size={34} />
       </div>

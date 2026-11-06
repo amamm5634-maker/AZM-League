@@ -6,6 +6,8 @@ export interface RosterEntry {
   position: Position;
   /** مسار الصورة داخل مجلد public، مثل: 'players/ahmed-hendasa.jpg' (اختياري) */
   photo?: string;
+  photos?: { src: string; from: number; to: number }[];
+  cardStyle?: 'fifa';
 }
 
 /**
@@ -33,7 +35,15 @@ export const ROSTERS: Record<string, RosterEntry[]> = {
     { name: 'محمد يوسف', number: 8, position: 'مدافع' },
     { name: 'عثمان أسامة', number: 9, position: 'مدافع' },
     { name: 'السماني فتح الدين', number: 10, position: 'وسط' },
-    { name: 'محمد إمام', number: 11, position: 'وسط' },
+    {
+      name: 'محمد إمام',
+      number: 11,
+      position: 'وسط',
+      photo: 'players/cs-imam-day.jpg',
+      // من 6 مساءً إلى 6 صباحاً: صورة قميص إيطاليا
+      photos: [{ src: 'players/cs-imam-night.jpg', from: 18, to: 6 }],
+      cardStyle: 'fifa',
+    },
     { name: 'غسان بكري محمد عثمان', number: 12, position: 'وسط', photo: 'players/cs-ghassan.jpg' },
     { name: 'أحمد محمد أحمد', number: 13, position: 'وسط' },
     { name: 'عمر تيسير', number: 14, position: 'وسط', photo: 'players/cs-omar.jpg' },

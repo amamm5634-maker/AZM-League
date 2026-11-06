@@ -19,6 +19,10 @@ export interface Player {
   number: number;
   position: Position;
   photo?: string; // مسار الصورة داخل public/ مثل players/ahmed.jpg
+  /** صور بديلة حسب ساعة اليوم (من..إلى بتوقيت الجهاز؛ من>إلى تعني عبور منتصف الليل). الأولى المطابقة تغلب، وإلا photo */
+  photos?: { src: string; from: number; to: number }[];
+  /** نمط البطاقة: fifa = بطاقة ذهبية بأسلوب فيفا (تجريبي، احذف الحقل للرجوع) */
+  cardStyle?: 'fifa';
 }
 
 export interface Match {

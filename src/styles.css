@@ -675,3 +675,23 @@ a.sponsor:hover { background: rgba(255, 255, 255, 0.12); transform: translateY(-
 
 /* لاعب خرج أو طُرد: يخفت على الملعب */
 .pl.gone { opacity: .55; }
+
+/* ---------- بطاقة بأسلوب فيفا الذهبية (تجريبية: cardStyle: 'fifa') ---------- */
+.pcard.fifa { color: #3a2808; border-radius: 22px 22px 46% 46% / 22px 22px 12% 12%; background: linear-gradient(155deg, #f6e7a6 0%, #e2c56f 38%, #c9a13f 66%, #ecd48a 100%); box-shadow: 0 18px 32px -16px rgba(120, 80, 0, 0.7), inset 0 0 0 2px rgba(255, 245, 200, 0.55); }
+.pcard.fifa::before { display: none; }
+.pcard.fifa::after { background: repeating-linear-gradient(120deg, rgba(255, 255, 255, 0.10) 0 14px, transparent 14px 28px), linear-gradient(115deg, transparent 40%, rgba(255, 255, 255, 0.28) 50%, transparent 60%); }
+.pcard.fifa .pwm, .pcard.fifa .sil { display: none; }
+.pcard.fifa .pc-top { inset-inline: auto; left: 0; top: 0; width: 30%; padding: 14px 0 0; justify-content: center; }
+.pcard.fifa .pc-id { align-items: center; gap: 2px; }
+.pcard.fifa .pnum { background: none; box-shadow: none; color: #3a2808; font-size: 2.7rem; padding: 0; }
+.pcard.fifa .ppos { background: none; color: #3a2808; font-size: 0.95rem; font-weight: 800; padding: 0; letter-spacing: 0.02em; }
+.pcard.fifa .ppos::after { content: ''; display: block; width: 26px; height: 1.5px; margin: 6px auto 0; background: rgba(58, 40, 8, 0.45); }
+.pcard.fifa .pc-top > :last-child { display: none; }
+.sd-flag { position: relative; display: block; width: 34px; height: 22px; margin-top: 8px; border-radius: 2px; background: linear-gradient(#d21034 0 33.3%, #fff 33.3% 66.6%, #000 66.6%); box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.15); overflow: hidden; }
+.sd-flag::before { content: ''; position: absolute; inset: 0 auto 0 0; width: 46%; background: #007a3d; clip-path: polygon(0 0, 100% 50%, 0 100%); }
+.pcard.fifa .pimg { inset-inline: auto; right: 0; top: 3%; width: 74%; height: 56%; object-position: top center; -webkit-mask-image: radial-gradient(62% 72% at 50% 34%, #000 52%, transparent 100%); mask-image: radial-gradient(62% 72% at 50% 34%, #000 52%, transparent 100%); }
+.pcard.fifa .pinfo { padding: 0 12px 14px; background: none; bottom: 5%; }
+.pcard.fifa .pname { color: #3a2808; font-family: var(--font-display); font-size: 1.35rem; text-shadow: none; padding-bottom: 6px; border-bottom: 1.5px solid rgba(58, 40, 8, 0.4); }
+.pcard.fifa .pstats { color: #3a2808; justify-content: center; gap: 26px; margin-top: 8px; }
+.pcard.fifa .pstats b { color: #3a2808; font-size: 1.5rem; }
+.pcard.fifa .pstats span { color: #5a4210; font-weight: 800; }

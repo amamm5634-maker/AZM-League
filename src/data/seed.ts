@@ -87,6 +87,8 @@ function buildPlayers(teams: Team[]): Player[] {
         number: entry.number,
         position: entry.position,
         photo: entry.photo,
+        photos: entry.photos,
+        cardStyle: entry.cardStyle,
       });
     });
   }
