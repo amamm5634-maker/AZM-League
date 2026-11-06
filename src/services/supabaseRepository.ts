@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { EventInput, GalleryPhoto, Lineup, Match, MatchEvent, MatchMessage, NewsItem, PredictionChoice, PredictionCounts, TournamentState } from '../types';
+import { planCard } from '../lib/cards';
+import type { CardInput, EventInput, GalleryPhoto, Lineup, MatchCard, Match, MatchEvent, MatchMessage, NewsItem, PredictionChoice, PredictionCounts, TournamentState } from '../types';
 import { buildSeed } from '../data/seed';
 import { adjustScore } from '../lib/scoring';
 import { validateEventInput, validateScore } from '../lib/validation';
@@ -32,6 +33,7 @@ interface PhotoRow {
   created_at: string;
   round_pick?: number | null;
 }
+interface CardRow { id: string; match_id: string; team_id: string; player_id: string; kind: 'yellow' | 'red'; minute: number | null }
 interface LineupRow { match_id: string; team_id: string; player_ids: string[]; updated_at: string | null }
 interface MessageRow { id: string; match_id: string; author: string; body: string; status: MatchMessage['status']; created_at: string }
 interface NewsRow { id: string; title: string; summary: string; tag: string; image_url: string | null; published_at: string }
@@ -80,16 +82,18 @@ export class SupabaseRepository implements TournamentRepository {
       this.db.from('news').select('id,title,summary,tag,image_url,published_at').order('published_at', { ascending: false }),
       // التشكيلات: إن لم يُشغَّل lineups.sql بعد فالجدول غير موجود، ولا نريد أن يتعطل الموقع بسببه (نتجاهل الخطأ)
       this.db.from('match_lineups').select('match_id,team_id,player_ids,updated_at'),
+      // البطاقات: نفس القاعدة (لو لم يُشغَّل cards.sql لا يتعطل الموقع)
+      this.db.from('match_cards').select('id,match_id,team_id,player_id,kind,minute').order('created_at', { ascending: true }),
     ]);
   }
 
   async load(): Promise<TournamentState> {
     const fresh = this.seedFn();
-    let [ms, ev, nw, ln] = await this.fetchAll();
+    let [ms, ev, nw, ln, cd] = await this.fetchAll();
     const expired = [ms.error, ev.error, nw.error].some((e) => e && /jwt|expired/i.test(e.message));
     if (expired) {
       await this.recoverSession();
-      [ms, ev, nw, ln] = await this.fetchAll();
+      [ms, ev, nw, ln, cd] = await this.fetchAll();
     }
     const err = ms.error ?? ev.error ?? nw.error;
     if (err) throw new Error(err.message);
@@ -125,7 +129,12 @@ export class SupabaseRepository implements TournamentRepository {
       : (ln.data as LineupRow[])
           .filter((l) => matchIds.has(l.match_id) && l.player_ids.every((id) => playerIds.has(id)))
           .map((l) => ({ matchId: l.match_id, teamId: l.team_id, playerIds: l.player_ids, updatedAt: l.updated_at ?? undefined }));
-    return { ...fresh, matches, events, lineups, news: [...dbNews, ...fresh.news] };
+    const cards: MatchCard[] = cd.error || !cd.data
+      ? []
+      : (cd.data as CardRow[])
+          .filter((c) => matchIds.has(c.match_id) && playerIds.has(c.player_id))
+          .map((c) => ({ id: c.id, matchId: c.match_id, teamId: c.team_id, playerId: c.player_id, kind: c.kind, minute: c.minute ?? undefined }));
+    return { ...fresh, matches, events, lineups, cards, news: [...dbNews, ...fresh.news] };
   }
 
   private async done(message: string): Promise<Result<TournamentState>> {
@@ -406,6 +415,33 @@ export class SupabaseRepository implements TournamentRepository {
     const { error } = await this.db.from('match_messages').update({ status }).eq('id', id);
     if (error) return fail(error, 'تعذّر حفظ القرار.');
     return { ok: true, data: undefined, message: status === 'approved' ? 'تم قبول الرسالة.' : 'تم رفض الرسالة.' };
+  }
+
+  async addCard(input: CardInput): Promise<Result<TournamentState>> {
+    const state = await this.load();
+    const plan = planCard(state.cards ?? [], input, state.matches.find((m) => m.id === input.matchId), state.players);
+    if (!plan.ok) return plan;
+    const rows = plan.kinds.map((kind) => ({
+      match_id: input.matchId,
+      team_id: input.teamId,
+      player_id: input.playerId,
+      kind,
+      minute: input.minute ?? null,
+    }));
+    const { error } = await this.db.from('match_cards').insert(rows);
+    if (error) {
+      if (/match_cards|42P01|PGRST205/.test(`${error.code ?? ''} ${error.message ?? ''}`)) {
+        return { ok: false, error: 'شغّل ملف supabase/cards.sql مرة واحدة في Supabase SQL Editor ثم أعد المحاولة.' };
+      }
+      return fail(error, 'تعذّر حفظ البطاقة.');
+    }
+    return this.done(plan.kinds.length === 2 ? 'أصفر ثانٍ: سُجّلت الحمراء تلقائياً.' : plan.kinds[0] === 'red' ? 'سُجّلت البطاقة الحمراء.' : 'سُجّلت البطاقة الصفراء.');
+  }
+
+  async deleteCard(cardId: string): Promise<Result<TournamentState>> {
+    const { error } = await this.db.from('match_cards').delete().eq('id', cardId);
+    if (error) return fail(error, 'تعذّر حذف البطاقة.');
+    return this.done('حُذفت البطاقة.');
   }
 
   async resetMatch(matchId: string): Promise<Result<TournamentState>> {

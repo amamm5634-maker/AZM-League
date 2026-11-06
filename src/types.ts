@@ -46,6 +46,24 @@ export interface MatchEvent {
   minute?: number;
 }
 
+/** بطاقة (أصفر/أحمر) لاعب في مباراة، تُسجَّل مع الدقيقة */
+export type CardKind = 'yellow' | 'red';
+export interface MatchCard {
+  id: string;
+  matchId: string;
+  teamId: string;
+  playerId: string;
+  kind: CardKind;
+  minute?: number;
+}
+export interface CardInput {
+  matchId: string;
+  teamId: string;
+  playerId: string;
+  kind: CardKind;
+  minute?: number;
+}
+
 /** التشكيلة الأساسية (11 لاعباً) لفريق في مباراة، يسجّلها مسجّل المباراة. الباقي من قائمة الفريق = البدلاء */
 export interface Lineup {
   matchId: string;
@@ -71,6 +89,8 @@ export interface TournamentState {
   news: NewsItem[];
   /** التشكيلات المسجّلة للمباريات. اختياري: الغائب = لا تشكيلات بعد */
   lineups?: Lineup[];
+  /** البطاقات المسجّلة. اختياري: الغائب = لا بطاقات */
+  cards?: MatchCard[];
   /** النقاط التأديبية لكل فريق (teamId ← نقاط؛ الأقل أفضل). تُستخدم في كسر التعادل بعد فارق الأهداف. اختياري: الغائب = 0 */
   discipline?: Record<string, number>;
 }

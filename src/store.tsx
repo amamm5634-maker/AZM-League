@@ -8,7 +8,7 @@ import {
   useState,
   type ReactNode,
 } from 'react';
-import type { EventInput, TournamentState } from './types';
+import type { CardInput, EventInput, TournamentState } from './types';
 import { repository, type NewsInput, type Result } from './services';
 
 type Applied = Promise<Result<TournamentState>>;
@@ -42,6 +42,8 @@ export interface Actions {
   setManOfMatch(matchId: string, playerId: string | null): Applied;
   reset(): Applied;
   resetMatch(matchId: string): Applied;
+  addCard(input: CardInput): Applied;
+  deleteCard(cardId: string): Applied;
   saveLineup(matchId: string, teamId: string, playerIds: string[]): Applied;
   addNews(input: NewsInput): Applied;
   deleteNews(id: string): Applied;
@@ -141,6 +143,8 @@ export function TournamentProvider({ children }: { children: ReactNode }) {
       setManOfMatch: (matchId, playerId) => apply(repository.setManOfMatch(matchId, playerId)),
       reset: () => apply(repository.reset()),
       resetMatch: (matchId) => apply(repository.resetMatch(matchId)),
+      addCard: (input) => apply(repository.addCard(input)),
+      deleteCard: (cardId) => apply(repository.deleteCard(cardId)),
       saveLineup: (matchId, teamId, playerIds) => apply(repository.saveLineup(matchId, teamId, playerIds)),
       addNews: (input) => apply(repository.addNews(input)),
       deleteNews: (id) => apply(repository.deleteNews(id)),

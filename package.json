@@ -12,14 +12,15 @@
     "check:demo": "tsx scripts/check-demo.ts",
     "check:draw": "tsx scripts/check-draw.ts",
     "check:flow": "tsx scripts/check-admin-flow.ts",
-    "check": "npm run typecheck && npm run check:data && npm run check:demo && npm run check:draw && npm run check:flow && npm run check:bracket && npm run check:scenarios && npm run check:gallery && npm run check:staff && npm run check:tiebreak && npm run check:predictions && npm run check:lineup",
+    "check": "npm run typecheck && npm run check:data && npm run check:demo && npm run check:draw && npm run check:flow && npm run check:bracket && npm run check:scenarios && npm run check:gallery && npm run check:staff && npm run check:tiebreak && npm run check:predictions && npm run check:lineup && npm run check:cards",
     "check:bracket": "tsx scripts/check-bracket.ts",
     "check:scenarios": "tsx scripts/check-scenarios.ts",
     "check:gallery": "tsx scripts/check-gallery.ts",
     "check:staff": "tsx scripts/check-staff.ts",
     "check:tiebreak": "tsx scripts/check-tiebreak.ts",
     "check:predictions": "tsx scripts/check-predictions.ts",
-    "check:lineup": "tsx scripts/check-lineup.ts"
+    "check:lineup": "tsx scripts/check-lineup.ts",
+    "check:cards": "tsx scripts/check-cards.ts"
   },
   "dependencies": {
     "react": "^18.3.1",

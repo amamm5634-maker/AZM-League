@@ -4,6 +4,8 @@ import { GROUP_LABELS, MATCH_STATUS_LABELS } from '../data/config';
 import { eventsForMatch, formatArabicDate, playerById, sortMatches, teamById } from '../lib/stats';
 import { useData, useTournament } from '../store';
 import { TeamBadge } from '../components/TeamBadge';
+import { CARD_EMOJI, CARD_LABELS, cardsForMatch } from '../lib/cards';
+import type { CardKind } from '../types';
 
 type Side = 'home' | 'away';
 type Notice = { type: 'ok' | 'error'; text: string };
@@ -16,7 +18,7 @@ export function QuickScorer() {
   const [matchId, setMatchId] = useState<string>('');
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<Notice | null>(null);
-  const [picking, setPicking] = useState<{ side: Side; scorer?: Player } | null>(null);
+  const [picking, setPicking] = useState<{ side: Side; scorer?: Player; card?: CardKind } | null>(null);
   const [minute, setMinute] = useState('');
   const [lastSide, setLastSide] = useState<Side | null>(null);
   const [confirmEnd, setConfirmEnd] = useState(false);
@@ -90,6 +92,17 @@ export function QuickScorer() {
     else setPicking({ side });
   }
 
+  async function saveCard(side: Side, kind: CardKind, player: Player) {
+    const team = teamOf(side);
+    if (!team) return;
+    const min = minute.trim() === '' ? undefined : Number(minute);
+    const ok = await run(actions.addCard({ matchId: m.id, teamId: team.id, playerId: player.id, kind, minute: min }));
+    if (ok) {
+      setPicking(null);
+      setMinute('');
+    }
+  }
+
   async function undo() {
     const last = goals[goals.length - 1];
     if (last) {
@@ -143,6 +156,13 @@ export function QuickScorer() {
                 <button type="button" className="quick-goal" disabled={busy} onClick={() => onGoal(side)}>
                   ⚽ هدف
                 </button>
+                <div className="quick-cards">
+                  {(['yellow', 'red'] as CardKind[]).map((k) => (
+                    <button key={k} type="button" className="btn" disabled={busy || squad(side).length === 0} onClick={() => setPicking({ side, card: k })} aria-label={`${CARD_LABELS[k]} لـ ${t?.nickname}`}>
+                      {CARD_EMOJI[k]}
+                    </button>
+                  ))}
+                </div>
               </div>
             );
           })}
@@ -171,8 +191,20 @@ export function QuickScorer() {
         <ol className="quick-log" aria-label="أهداف المباراة">
           {goals.map((e) => (
             <li key={e.id}>
-              <span dir="ltr">{e.minute != null ? `${e.minute}'` : '—'}</span> {playerById(state, e.scorerId)?.name}
+              <span dir="ltr">{e.minute != null ? `${e.minute}'` : '—'}</span> ⚽ {playerById(state, e.scorerId)?.name}
               <small> ({teamById(state, e.teamId)?.nickname})</small>
+            </li>
+          ))}
+        </ol>
+      )}
+
+      {cardsForMatch(state.cards, match.id).length > 0 && (
+        <ol className="quick-log" aria-label="بطاقات المباراة">
+          {cardsForMatch(state.cards, match.id).map((c) => (
+            <li key={c.id}>
+              <span dir="ltr">{c.minute != null ? `${c.minute}'` : '—'}</span> {CARD_EMOJI[c.kind]} {playerById(state, c.playerId)?.name}
+              <small> ({teamById(state, c.teamId)?.nickname})</small>{' '}
+              <button type="button" className="btn" disabled={busy} onClick={() => void run(actions.deleteCard(c.id))} aria-label="حذف البطاقة">حذف</button>
             </li>
           ))}
         </ol>
@@ -182,7 +214,7 @@ export function QuickScorer() {
         <div className="quick-sheet" role="dialog" aria-modal="true" aria-label="اختيار اللاعب">
           <div className="qs-box">
             <div className="qs-head">
-              <b>{picking.scorer ? 'من صنع الهدف؟' : `من سجّل لـ ${teamOf(picking.side)?.nickname}؟`}</b>
+              <b>{picking.card ? `${CARD_EMOJI[picking.card]} من أخذ ${CARD_LABELS[picking.card]} في ${teamOf(picking.side)?.nickname}؟` : picking.scorer ? 'من صنع الهدف؟' : `من سجّل لـ ${teamOf(picking.side)?.nickname}؟`}</b>
               <button type="button" className="btn" onClick={() => setPicking(null)}>إلغاء</button>
             </div>
             <div className="field" style={{ maxWidth: 160 }}>
@@ -196,7 +228,7 @@ export function QuickScorer() {
                   type="button"
                   className="qs-player"
                   disabled={busy}
-                  onClick={() => (picking.scorer ? void saveGoal(picking.side, picking.scorer, p) : setPicking({ side: picking.side, scorer: p }))}
+                  onClick={() => (picking.card ? void saveCard(picking.side, picking.card, p) : picking.scorer ? void saveGoal(picking.side, picking.scorer, p) : setPicking({ side: picking.side, scorer: p }))}
                 >
                   <b>{p.number}</b>
                   <span>{p.name}</span>

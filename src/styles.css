@@ -670,3 +670,7 @@ a.sponsor:hover { background: rgba(255, 255, 255, 0.12); transform: translateY(-
 /* ---- التشكيلتان في صفحة المباراة ---- */
 .lineups-pair { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 18px; }
 .lineup-team { text-align: center; font-size: 1.1rem; color: var(--head); margin-bottom: 8px; }
+
+/* أزرار البطاقات في وضع الميدان */
+.quick-cards { display: flex; gap: 8px; justify-content: center; margin-top: 8px; }
+.quick-cards .btn { font-size: 1.4rem; padding: 6px 14px; min-height: 44px; }

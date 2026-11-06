@@ -2,6 +2,7 @@ import type { CSSProperties } from 'react';
 import { GROUP_LABELS, MATCH_STATUS_LABELS, ROUND_LABELS } from '../data/config';
 import { eventsForMatch, formatArabicDate, playerById, teamById } from '../lib/stats';
 import { lineupFor } from '../lib/lineup';
+import { CARD_EMOJI, CARD_LABELS, cardsForMatch } from '../lib/cards';
 import { LineupPitch } from '../components/LineupPitch';
 import { usePhotos } from '../lib/usePhotos';
 import { useData } from '../store';
@@ -26,6 +27,16 @@ export function MatchPage({ matchId }: { matchId: string }) {
   const away = teamById(state, match.awayId);
   const goals = eventsForMatch(state, match.id);
   const hasScore = match.status !== 'scheduled';
+  const cards = cardsForMatch(state.cards, match.id);
+  // خط زمني واحد: الأهداف والبطاقات مرتبة بالدقيقة (من بلا دقيقة في الآخر)
+  type Row = { key: string; minute?: number; teamId: string; kind: 'goal' | 'yellow' | 'red'; playerId: string; assistId?: string };
+  const timeline: Row[] = [
+    ...goals.map((e): Row => ({ key: e.id, minute: e.minute, teamId: e.teamId, kind: 'goal', playerId: e.scorerId, assistId: e.assistId })),
+    ...cards.map((c): Row => ({ key: c.id, minute: c.minute, teamId: c.teamId, kind: c.kind, playerId: c.playerId })),
+  ]
+    .map((r, i) => ({ r, i }))
+    .sort((a, b) => (a.r.minute ?? 999) - (b.r.minute ?? 999) || a.i - b.i)
+    .map((x) => x.r);
   const motm = match.motmId ? playerById(state, match.motmId) : undefined;
   const motmTeam = motm ? teamById(state, motm.teamId) : undefined;
   const shareText = hasScore
@@ -102,21 +113,22 @@ export function MatchPage({ matchId }: { matchId: string }) {
       })()}
 
       <section className="card section" aria-labelledby="goals-title">
-        <h2 id="goals-title" style={{ fontSize: '1.3rem', color: 'var(--head)', marginBottom: 10 }}>الأهداف</h2>
-        {goals.length === 0 ? (
-          <p style={{ color: 'var(--muted)' }}>{hasScore ? 'لم تُسجَّل تفاصيل الأهداف بعد.' : 'لم تبدأ المباراة بعد، وتظهر الأهداف هنا فور تسجيلها.'}</p>
+        <h2 id="goals-title" style={{ fontSize: '1.3rem', color: 'var(--head)', marginBottom: 10 }}>أحداث المباراة</h2>
+        {timeline.length === 0 ? (
+          <p style={{ color: 'var(--muted)' }}>{hasScore ? 'لم تُسجَّل تفاصيل الأحداث بعد.' : 'لم تبدأ المباراة بعد، وتظهر الأهداف والبطاقات هنا فور تسجيلها.'}</p>
         ) : (
           <ol className="goal-tl">
-            {goals.map((e) => {
-              const scorer = playerById(state, e.scorerId);
+            {timeline.map((e) => {
+              const player = playerById(state, e.playerId);
               const assister = e.assistId ? playerById(state, e.assistId) : undefined;
               const team = teamById(state, e.teamId);
               return (
-                <li key={e.id} className={e.teamId === match.homeId ? 'home' : 'away'}>
+                <li key={e.key} className={e.teamId === match.homeId ? 'home' : 'away'}>
                   <span className="min" dir="ltr">{e.minute != null ? `${e.minute}'` : '—'}</span>
                   <TeamBadge team={team} size={26} />
                   <span>
-                    <a href={`#/player/${e.scorerId}`}><strong>{scorer?.name}</strong></a>
+                    {e.kind !== 'goal' && <span role="img" aria-label={CARD_LABELS[e.kind]}>{CARD_EMOJI[e.kind]} </span>}
+                    <a href={`#/player/${e.playerId}`}><strong>{player?.name}</strong></a>
                     {assister && <small style={{ color: 'var(--muted)' }}> · صناعة: {assister.name}</small>}
                   </span>
                 </li>
