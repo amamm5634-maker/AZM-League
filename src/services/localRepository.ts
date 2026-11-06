@@ -1,9 +1,10 @@
-import type { CardInput, EventInput, GalleryPhoto, Match, MatchEvent, MatchMessage, PredictionChoice, PredictionCounts, TournamentState } from '../types';
+import type { SubInput, CardInput, EventInput, GalleryPhoto, Match, MatchEvent, MatchMessage, PredictionChoice, PredictionCounts, TournamentState } from '../types';
 import { buildSeed } from '../data/seed';
 import { validateEventInput, validateScore } from '../lib/validation';
 import { adjustScore } from '../lib/scoring';
 import { validateLineup } from '../lib/lineup';
 import { planCard } from '../lib/cards';
+import { canDeleteSub, validateSub } from '../lib/subs';
 import type { NewsInput, PhotoInput, PhotoPage, PhotoQuery, PhotoUsage, Result, TournamentRepository } from './repository';
 
 export const STORAGE_KEY = 'azm-league:v2';
@@ -33,7 +34,8 @@ function merge(fresh: TournamentState, stored: TournamentState): TournamentState
   const events = stored.events.filter((e) => matchIds.has(e.matchId) && playerIds.has(e.scorerId));
   const lineups = (stored.lineups ?? []).filter((l) => matchIds.has(l.matchId) && l.playerIds.every((id) => playerIds.has(id)));
   const cards = (stored.cards ?? []).filter((c) => matchIds.has(c.matchId) && playerIds.has(c.playerId));
-  return { ...fresh, matches, events, lineups, cards };
+  const subs = (stored.subs ?? []).filter((s) => matchIds.has(s.matchId) && playerIds.has(s.outId) && playerIds.has(s.inId));
+  return { ...fresh, matches, events, lineups, cards, subs };
 }
 
 /**
@@ -189,6 +191,30 @@ export class LocalStorageRepository implements TournamentRepository {
     return this.commit(state, 'حُذفت البطاقة.');
   }
 
+  async addSub(input: SubInput): Promise<Result<TournamentState>> {
+    const state = clone(this.read());
+    const problem = validateSub(
+      input,
+      state.matches.find((m) => m.id === input.matchId),
+      state.lineups?.find((l) => l.matchId === input.matchId && l.teamId === input.teamId),
+      state.subs ?? [],
+      state.cards ?? [],
+      state.players,
+    );
+    if (problem) return { ok: false, error: problem };
+    state.subs = [...(state.subs ?? []), { id: `s${Date.now()}${Math.random().toString(36).slice(2, 6)}`, ...input }];
+    return this.commit(state, 'سُجّل التبديل.');
+  }
+
+  async deleteSub(subId: string): Promise<Result<TournamentState>> {
+    const state = clone(this.read());
+    const sub = (state.subs ?? []).find((s) => s.id === subId);
+    if (!sub) return { ok: false, error: 'التبديل غير موجود، ربما حُذف.' };
+    if (!canDeleteSub(state.subs ?? [], sub)) return { ok: false, error: 'احذف التبديل اللاحق أولاً (اللاعب الداخل خرج بعدها).' };
+    state.subs = (state.subs ?? []).filter((s) => s.id !== subId);
+    return this.commit(state, 'حُذف التبديل.');
+  }
+
   async resetMatch(matchId: string): Promise<Result<TournamentState>> {
     const state = clone(this.read());
     const match = state.matches.find((m) => m.id === matchId);
@@ -199,6 +225,7 @@ export class LocalStorageRepository implements TournamentRepository {
     match.motmId = undefined;
     state.events = state.events.filter((e) => e.matchId !== matchId);
     state.cards = (state.cards ?? []).filter((c) => c.matchId !== matchId);
+    state.subs = (state.subs ?? []).filter((s) => s.matchId !== matchId);
     return this.commit(state, 'أُعيدت المباراة إلى حالتها الأولى.');
   }
 

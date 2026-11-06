@@ -1,4 +1,4 @@
-import type { CardInput, EventInput, GalleryPhoto, MatchMessage, PredictionChoice, PredictionCounts, TournamentState } from '../types';
+import type { SubInput, CardInput, EventInput, GalleryPhoto, MatchMessage, PredictionChoice, PredictionCounts, TournamentState } from '../types';
 
 export type Result<T = void> =
   | { ok: true; data: T; message: string }
@@ -58,6 +58,9 @@ export interface TournamentRepository {
   /** يسجّل بطاقة. أصفر ثانٍ لنفس اللاعب في المباراة يُضيف أحمر تلقائياً */
   addCard(input: CardInput): Promise<Result<TournamentState>>;
   deleteCard(cardId: string): Promise<Result<TournamentState>>;
+  /** تبديل لاعب (حد أقصى 5 لكل فريق، من خرج لا يعود) */
+  addSub(input: SubInput): Promise<Result<TournamentState>>;
+  deleteSub(subId: string): Promise<Result<TournamentState>>;
   addNews(input: NewsInput): Promise<Result<TournamentState>>;
   deleteNews(id: string): Promise<Result<TournamentState>>;
 

@@ -6,6 +6,8 @@ import { useData, useTournament } from '../store';
 import { TeamBadge } from '../components/TeamBadge';
 import { CARD_EMOJI, CARD_LABELS, cardsForMatch } from '../lib/cards';
 import type { CardKind } from '../types';
+import { benchIds, canDeleteSub, MAX_SUBS, onPitchIds, subsForMatch } from '../lib/subs';
+import { lineupFor } from '../lib/lineup';
 
 type Side = 'home' | 'away';
 type Notice = { type: 'ok' | 'error'; text: string };
@@ -18,7 +20,7 @@ export function QuickScorer() {
   const [matchId, setMatchId] = useState<string>('');
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<Notice | null>(null);
-  const [picking, setPicking] = useState<{ side: Side; scorer?: Player; card?: CardKind } | null>(null);
+  const [picking, setPicking] = useState<{ side: Side; scorer?: Player; card?: CardKind; sub?: boolean; out?: Player } | null>(null);
   const [minute, setMinute] = useState('');
   const [lastSide, setLastSide] = useState<Side | null>(null);
   const [confirmEnd, setConfirmEnd] = useState(false);
@@ -103,6 +105,29 @@ export function QuickScorer() {
     }
   }
 
+  const lineupOf = (side: Side) => lineupFor(state, m.id, teamOf(side)?.id ?? '');
+  const matchSubs = subsForMatch(state.subs, m.id);
+  const subsLeft = (side: Side) => MAX_SUBS - matchSubs.filter((s) => s.teamId === teamOf(side)?.id).length;
+  const pitchPlayers = (side: Side) => {
+    const ids = new Set(onPitchIds(lineupOf(side), state.subs ?? [], state.cards ?? [], m.id, teamOf(side)?.id ?? ''));
+    return squad(side).filter((p) => ids.has(p.id));
+  };
+  const benchPlayers = (side: Side) => {
+    const ids = new Set(benchIds(lineupOf(side), state.subs ?? [], state.players, m.id, teamOf(side)?.id ?? ''));
+    return squad(side).filter((p) => ids.has(p.id));
+  };
+
+  async function saveSub(side: Side, out: Player, inn: Player) {
+    const team = teamOf(side);
+    if (!team) return;
+    const min = minute.trim() === '' ? undefined : Number(minute);
+    const ok = await run(actions.addSub({ matchId: m.id, teamId: team.id, outId: out.id, inId: inn.id, minute: min }));
+    if (ok) {
+      setPicking(null);
+      setMinute('');
+    }
+  }
+
   async function undo() {
     const last = goals[goals.length - 1];
     if (last) {
@@ -157,6 +182,16 @@ export function QuickScorer() {
                   ⚽ هدف
                 </button>
                 <div className="quick-cards">
+                  <button
+                    type="button"
+                    className="btn"
+                    disabled={busy || !lineupOf(side) || subsLeft(side) <= 0}
+                    onClick={() => setPicking({ side, sub: true })}
+                    aria-label={`تبديل لـ ${t?.nickname}`}
+                    title={!lineupOf(side) ? 'سجّل التشكيلة الأساسية أولاً' : `متبقٍ ${subsLeft(side)} تبديلات`}
+                  >
+                    🔁 <small>{lineupOf(side) ? subsLeft(side) : '—'}</small>
+                  </button>
                   {(['yellow', 'red'] as CardKind[]).map((k) => (
                     <button key={k} type="button" className="btn" disabled={busy || squad(side).length === 0} onClick={() => setPicking({ side, card: k })} aria-label={`${CARD_LABELS[k]} لـ ${t?.nickname}`}>
                       {CARD_EMOJI[k]}
@@ -198,6 +233,18 @@ export function QuickScorer() {
         </ol>
       )}
 
+      {matchSubs.length > 0 && (
+        <ol className="quick-log" aria-label="تبديلات المباراة">
+          {matchSubs.map((s) => (
+            <li key={s.id}>
+              <span dir="ltr">{s.minute != null ? `${s.minute}'` : '—'}</span> 🔁 خرج {playerById(state, s.outId)?.name} ودخل {playerById(state, s.inId)?.name}
+              <small> ({teamById(state, s.teamId)?.nickname})</small>{' '}
+              <button type="button" className="btn" disabled={busy || !canDeleteSub(matchSubs, s)} onClick={() => void run(actions.deleteSub(s.id))} aria-label="حذف التبديل">حذف</button>
+            </li>
+          ))}
+        </ol>
+      )}
+
       {cardsForMatch(state.cards, match.id).length > 0 && (
         <ol className="quick-log" aria-label="بطاقات المباراة">
           {cardsForMatch(state.cards, match.id).map((c) => (
@@ -214,7 +261,7 @@ export function QuickScorer() {
         <div className="quick-sheet" role="dialog" aria-modal="true" aria-label="اختيار اللاعب">
           <div className="qs-box">
             <div className="qs-head">
-              <b>{picking.card ? `${CARD_EMOJI[picking.card]} من أخذ ${CARD_LABELS[picking.card]} في ${teamOf(picking.side)?.nickname}؟` : picking.scorer ? 'من صنع الهدف؟' : `من سجّل لـ ${teamOf(picking.side)?.nickname}؟`}</b>
+              <b>{picking.sub ? (picking.out ? `🔁 من يدخل بدل ${picking.out.name}؟` : `🔁 من يخرج من ${teamOf(picking.side)?.nickname}؟`) : picking.card ? `${CARD_EMOJI[picking.card]} من أخذ ${CARD_LABELS[picking.card]} في ${teamOf(picking.side)?.nickname}؟` : picking.scorer ? 'من صنع الهدف؟' : `من سجّل لـ ${teamOf(picking.side)?.nickname}؟`}</b>
               <button type="button" className="btn" onClick={() => setPicking(null)}>إلغاء</button>
             </div>
             <div className="field" style={{ maxWidth: 160 }}>
@@ -222,13 +269,13 @@ export function QuickScorer() {
               <input id="q-min" type="number" inputMode="numeric" min={1} max={120} value={minute} onChange={(e) => setMinute(e.target.value)} />
             </div>
             <div className="qs-grid">
-              {(picking.scorer ? assistPlayers : scorerPlayers).map((p) => (
+              {(picking.sub ? (picking.out ? benchPlayers(picking.side) : pitchPlayers(picking.side)) : picking.scorer ? assistPlayers : scorerPlayers).map((p) => (
                 <button
                   key={p.id}
                   type="button"
                   className="qs-player"
                   disabled={busy}
-                  onClick={() => (picking.card ? void saveCard(picking.side, picking.card, p) : picking.scorer ? void saveGoal(picking.side, picking.scorer, p) : setPicking({ side: picking.side, scorer: p }))}
+                  onClick={() => (picking.sub ? (picking.out ? void saveSub(picking.side, picking.out, p) : setPicking({ side: picking.side, sub: true, out: p })) : picking.card ? void saveCard(picking.side, picking.card, p) : picking.scorer ? void saveGoal(picking.side, picking.scorer, p) : setPicking({ side: picking.side, scorer: p }))}
                 >
                   <b>{p.number}</b>
                   <span>{p.name}</span>

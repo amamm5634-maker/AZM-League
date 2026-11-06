@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { planCard } from '../lib/cards';
-import type { CardInput, EventInput, GalleryPhoto, Lineup, MatchCard, Match, MatchEvent, MatchMessage, NewsItem, PredictionChoice, PredictionCounts, TournamentState } from '../types';
+import { canDeleteSub, validateSub } from '../lib/subs';
+import type { SubInput, MatchSub, CardInput, EventInput, GalleryPhoto, Lineup, MatchCard, Match, MatchEvent, MatchMessage, NewsItem, PredictionChoice, PredictionCounts, TournamentState } from '../types';
 import { buildSeed } from '../data/seed';
 import { adjustScore } from '../lib/scoring';
 import { validateEventInput, validateScore } from '../lib/validation';
@@ -34,6 +35,7 @@ interface PhotoRow {
   round_pick?: number | null;
 }
 interface CardRow { id: string; match_id: string; team_id: string; player_id: string; kind: 'yellow' | 'red'; minute: number | null }
+interface SubRow { id: string; match_id: string; team_id: string; out_id: string; in_id: string; minute: number | null }
 interface LineupRow { match_id: string; team_id: string; player_ids: string[]; updated_at: string | null }
 interface MessageRow { id: string; match_id: string; author: string; body: string; status: MatchMessage['status']; created_at: string }
 interface NewsRow { id: string; title: string; summary: string; tag: string; image_url: string | null; published_at: string }
@@ -84,16 +86,17 @@ export class SupabaseRepository implements TournamentRepository {
       this.db.from('match_lineups').select('match_id,team_id,player_ids,updated_at'),
       // البطاقات: نفس القاعدة (لو لم يُشغَّل cards.sql لا يتعطل الموقع)
       this.db.from('match_cards').select('id,match_id,team_id,player_id,kind,minute').order('created_at', { ascending: true }),
+      this.db.from('match_subs').select('id,match_id,team_id,out_id,in_id,minute').order('created_at', { ascending: true }),
     ]);
   }
 
   async load(): Promise<TournamentState> {
     const fresh = this.seedFn();
-    let [ms, ev, nw, ln, cd] = await this.fetchAll();
+    let [ms, ev, nw, ln, cd, sb] = await this.fetchAll();
     const expired = [ms.error, ev.error, nw.error].some((e) => e && /jwt|expired/i.test(e.message));
     if (expired) {
       await this.recoverSession();
-      [ms, ev, nw, ln, cd] = await this.fetchAll();
+      [ms, ev, nw, ln, cd, sb] = await this.fetchAll();
     }
     const err = ms.error ?? ev.error ?? nw.error;
     if (err) throw new Error(err.message);
@@ -134,7 +137,12 @@ export class SupabaseRepository implements TournamentRepository {
       : (cd.data as CardRow[])
           .filter((c) => matchIds.has(c.match_id) && playerIds.has(c.player_id))
           .map((c) => ({ id: c.id, matchId: c.match_id, teamId: c.team_id, playerId: c.player_id, kind: c.kind, minute: c.minute ?? undefined }));
-    return { ...fresh, matches, events, lineups, cards, news: [...dbNews, ...fresh.news] };
+    const subs: MatchSub[] = sb.error || !sb.data
+      ? []
+      : (sb.data as SubRow[])
+          .filter((s) => matchIds.has(s.match_id) && playerIds.has(s.out_id) && playerIds.has(s.in_id))
+          .map((s) => ({ id: s.id, matchId: s.match_id, teamId: s.team_id, outId: s.out_id, inId: s.in_id, minute: s.minute ?? undefined }));
+    return { ...fresh, matches, events, lineups, cards, subs, news: [...dbNews, ...fresh.news] };
   }
 
   private async done(message: string): Promise<Result<TournamentState>> {
@@ -442,6 +450,43 @@ export class SupabaseRepository implements TournamentRepository {
     const { error } = await this.db.from('match_cards').delete().eq('id', cardId);
     if (error) return fail(error, 'تعذّر حذف البطاقة.');
     return this.done('حُذفت البطاقة.');
+  }
+
+  async addSub(input: SubInput): Promise<Result<TournamentState>> {
+    const state = await this.load();
+    const problem = validateSub(
+      input,
+      state.matches.find((m) => m.id === input.matchId),
+      state.lineups?.find((l) => l.matchId === input.matchId && l.teamId === input.teamId),
+      state.subs ?? [],
+      state.cards ?? [],
+      state.players,
+    );
+    if (problem) return { ok: false, error: problem };
+    const { error } = await this.db.from('match_subs').insert({
+      match_id: input.matchId,
+      team_id: input.teamId,
+      out_id: input.outId,
+      in_id: input.inId,
+      minute: input.minute ?? null,
+    });
+    if (error) {
+      if (/match_subs|42P01|PGRST205/.test(`${error.code ?? ''} ${error.message ?? ''}`)) {
+        return { ok: false, error: 'شغّل ملف supabase/subs.sql مرة واحدة في Supabase SQL Editor ثم أعد المحاولة.' };
+      }
+      return fail(error, 'تعذّر حفظ التبديل.');
+    }
+    return this.done('سُجّل التبديل.');
+  }
+
+  async deleteSub(subId: string): Promise<Result<TournamentState>> {
+    const state = await this.load();
+    const sub = (state.subs ?? []).find((s) => s.id === subId);
+    if (!sub) return { ok: false, error: 'التبديل غير موجود، ربما حُذف.' };
+    if (!canDeleteSub(state.subs ?? [], sub)) return { ok: false, error: 'احذف التبديل اللاحق أولاً (اللاعب الداخل خرج بعدها).' };
+    const { error } = await this.db.from('match_subs').delete().eq('id', subId);
+    if (error) return fail(error, 'تعذّر حذف التبديل.');
+    return this.done('حُذف التبديل.');
   }
 
   async resetMatch(matchId: string): Promise<Result<TournamentState>> {

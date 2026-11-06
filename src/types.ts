@@ -64,6 +64,23 @@ export interface CardInput {
   minute?: number;
 }
 
+/** تبديل: خرج لاعب ودخل بديل. من خرج لا يعود */
+export interface MatchSub {
+  id: string;
+  matchId: string;
+  teamId: string;
+  outId: string;
+  inId: string;
+  minute?: number;
+}
+export interface SubInput {
+  matchId: string;
+  teamId: string;
+  outId: string;
+  inId: string;
+  minute?: number;
+}
+
 /** التشكيلة الأساسية (11 لاعباً) لفريق في مباراة، يسجّلها مسجّل المباراة. الباقي من قائمة الفريق = البدلاء */
 export interface Lineup {
   matchId: string;
@@ -91,6 +108,8 @@ export interface TournamentState {
   lineups?: Lineup[];
   /** البطاقات المسجّلة. اختياري: الغائب = لا بطاقات */
   cards?: MatchCard[];
+  /** التبديلات المسجّلة. اختياري: الغائب = لا تبديلات */
+  subs?: MatchSub[];
   /** النقاط التأديبية لكل فريق (teamId ← نقاط؛ الأقل أفضل). تُستخدم في كسر التعادل بعد فارق الأهداف. اختياري: الغائب = 0 */
   discipline?: Record<string, number>;
 }

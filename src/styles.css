@@ -674,3 +674,6 @@ a.sponsor:hover { background: rgba(255, 255, 255, 0.12); transform: translateY(-
 /* أزرار البطاقات في وضع الميدان */
 .quick-cards { display: flex; gap: 8px; justify-content: center; margin-top: 8px; }
 .quick-cards .btn { font-size: 1.4rem; padding: 6px 14px; min-height: 44px; }
+
+/* لاعب خرج أو طُرد: يخفت على الملعب */
+.pl.gone { opacity: .55; }

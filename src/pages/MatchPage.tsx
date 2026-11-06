@@ -2,8 +2,9 @@ import type { CSSProperties } from 'react';
 import { GROUP_LABELS, MATCH_STATUS_LABELS, ROUND_LABELS } from '../data/config';
 import { eventsForMatch, formatArabicDate, playerById, teamById } from '../lib/stats';
 import { lineupFor } from '../lib/lineup';
+import { subsForMatch } from '../lib/subs';
 import { CARD_EMOJI, CARD_LABELS, cardsForMatch } from '../lib/cards';
-import { LineupPitch } from '../components/LineupPitch';
+import { LineupPitch, type PlayerMark } from '../components/LineupPitch';
 import { usePhotos } from '../lib/usePhotos';
 import { useData } from '../store';
 import { EmptyState } from '../components/StateViews';
@@ -28,10 +29,16 @@ export function MatchPage({ matchId }: { matchId: string }) {
   const goals = eventsForMatch(state, match.id);
   const hasScore = match.status !== 'scheduled';
   const cards = cardsForMatch(state.cards, match.id);
+  // علامات اللاعبين على الملعب: خرج 🔻، دخل 🔺، بطاقات
+  const marks: Record<string, PlayerMark> = {};
+  const mark = (id: string): PlayerMark => (marks[id] ??= {});
+  for (const s of subsForMatch(state.subs, match.id)) { mark(s.outId).out = true; mark(s.inId).in = true; }
+  for (const c of cards) { if (c.kind === 'red') mark(c.playerId).red = true; else mark(c.playerId).yellow = true; }
   // خط زمني واحد: الأهداف والبطاقات مرتبة بالدقيقة (من بلا دقيقة في الآخر)
-  type Row = { key: string; minute?: number; teamId: string; kind: 'goal' | 'yellow' | 'red'; playerId: string; assistId?: string };
+  type Row = { key: string; minute?: number; teamId: string; kind: 'goal' | 'yellow' | 'red' | 'sub'; playerId: string; assistId?: string; inId?: string };
   const timeline: Row[] = [
     ...goals.map((e): Row => ({ key: e.id, minute: e.minute, teamId: e.teamId, kind: 'goal', playerId: e.scorerId, assistId: e.assistId })),
+    ...subsForMatch(state.subs, match.id).map((s): Row => ({ key: s.id, minute: s.minute, teamId: s.teamId, kind: 'sub', playerId: s.outId, inId: s.inId })),
     ...cards.map((c): Row => ({ key: c.id, minute: c.minute, teamId: c.teamId, kind: c.kind, playerId: c.playerId })),
   ]
     .map((r, i) => ({ r, i }))
@@ -99,7 +106,7 @@ export function MatchPage({ matchId }: { matchId: string }) {
                     <div key={s.team.id}>
                       <h3 className="lineup-team">{s.team.name}</h3>
                       {s.lineup ? (
-                        <LineupPitch squad={state.players.filter((p) => p.teamId === s.team.id)} lineupIds={s.lineup.playerIds} team={s.team} />
+                        <LineupPitch squad={state.players.filter((p) => p.teamId === s.team.id)} lineupIds={s.lineup.playerIds} team={s.team} marks={marks} />
                       ) : (
                         <p className="notice" role="note">لم تُعلن تشكيلة {s.team.nickname} بعد.</p>
                       )}
@@ -127,8 +134,18 @@ export function MatchPage({ matchId }: { matchId: string }) {
                   <span className="min" dir="ltr">{e.minute != null ? `${e.minute}'` : '—'}</span>
                   <TeamBadge team={team} size={26} />
                   <span>
-                    {e.kind !== 'goal' && <span role="img" aria-label={CARD_LABELS[e.kind]}>{CARD_EMOJI[e.kind]} </span>}
-                    <a href={`#/player/${e.playerId}`}><strong>{player?.name}</strong></a>
+                    {e.kind === 'sub' ? (
+                      <>
+                        <span role="img" aria-label="تبديل">🔁 </span>
+                        <a href={`#/player/${e.inId}`}><strong>{playerById(state, e.inId ?? '')?.name}</strong></a>
+                        <small style={{ color: 'var(--muted)' }}> بدل {player?.name}</small>
+                      </>
+                    ) : (
+                      <>
+                        {e.kind !== 'goal' && <span role="img" aria-label={CARD_LABELS[e.kind]}>{CARD_EMOJI[e.kind]} </span>}
+                        <a href={`#/player/${e.playerId}`}><strong>{player?.name}</strong></a>
+                      </>
+                    )}
                     {assister && <small style={{ color: 'var(--muted)' }}> · صناعة: {assister.name}</small>}
                   </span>
                 </li>
