@@ -42,7 +42,6 @@ export const ROSTERS: Record<string, RosterEntry[]> = {
       photo: 'players/cs-imam-day.jpg',
       // من 6 مساءً إلى 6 صباحاً: صورة قميص إيطاليا
       photos: [{ src: 'players/cs-imam-night.jpg', from: 18, to: 6 }],
-      cardStyle: 'fifa',
     },
     { name: 'غسان بكري محمد عثمان', number: 12, position: 'وسط', photo: 'players/cs-ghassan.jpg' },
     { name: 'أحمد محمد أحمد', number: 13, position: 'وسط' },
