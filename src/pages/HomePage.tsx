@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react';
+import { assetUrl } from '../lib/asset';
 import { SCHEDULE, STATUS_LABELS, TOURNAMENT } from '../data/config';
 import {
   computePlayerStats,
@@ -183,7 +184,7 @@ export function HomePage() {
         </section>
       )}
 
-      <section className="section league-life" aria-labelledby="life-title" style={{ '--life-photo': `url("${import.meta.env.BASE_URL}images/lights-fog.jpg")` } as CSSProperties}>
+      <section className="section league-life" aria-labelledby="life-title" style={{ '--life-photo': `url("${assetUrl('images/lights-fog.jpg')}")` } as CSSProperties}>
         <div className="section-title"><h2 id="life-title">حياة الدوري</h2></div>
         <ol className="timeline">
           {LIFE.map((l) => (

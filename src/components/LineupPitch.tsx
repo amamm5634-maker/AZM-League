@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react';
 import type { Player, Team } from '../types';
 import { buildFormation } from '../lib/lineup';
+import { assetUrl } from '../lib/asset';
 
 /** يعرض التشكيلة الأساسية التي سجّلها المسؤول على الملعب، والباقون من قائمة الفريق بدلاء */
 export interface PlayerMark { out?: boolean; in?: boolean; yellow?: boolean; red?: boolean }
@@ -14,7 +15,7 @@ export function LineupPitch({ squad, lineupIds, team, marks }: { squad: Player[]
   const { rows, label, subs } = buildFormation(squad, lineupIds);
   const pitchStyle = {
     '--tc': team.color,
-    '--pitch-photo': `url("${import.meta.env.BASE_URL}images/field-lineup.jpg")`,
+    '--pitch-photo': `url("${assetUrl('images/field-lineup.jpg')}")`,
   } as CSSProperties;
 
   return (

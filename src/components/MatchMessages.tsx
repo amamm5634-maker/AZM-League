@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState, type CSSProperties, type FormEvent } from 'react';
 import { repository } from '../services';
+import { assetUrl } from '../lib/asset';
 import { deviceId } from '../lib/device';
 import { formatArabicDate } from '../lib/stats';
 import type { MatchMessage } from '../types';
@@ -10,7 +11,7 @@ const MAX = 140;
 function standsPhoto(): string {
   const h = new Date().getHours();
   const night = h >= 18 || h < 6;
-  return `url("${import.meta.env.BASE_URL}images/${night ? 'stands-night' : 'stands-sunset'}.jpg")`;
+  return `url("${assetUrl(`images/${night ? 'stands-night' : 'stands-sunset'}.jpg`)}")`;
 }
 
 /** مدرجات المباراة: رسائل تشجيع من الجمهور تظهر بعد موافقة الإدارة */
