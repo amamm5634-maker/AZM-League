@@ -1,10 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
 
-/** مسار ملف الموسيقى داخل مجلد public. إن لم يوجد الملف يختفي الزر تلقائياً. */
-const SRC = `${import.meta.env.BASE_URL}audio/anthem.mp3`;
+/** ملفات الموسيقى داخل مجلد public/audio. إن لم يوجد الملف يختفي الزر تلقائياً. */
+const TRACKS = {
+  anthem: `${import.meta.env.BASE_URL}audio/anthem.mp3`,
+  teams: `${import.meta.env.BASE_URL}audio/teams.mp3`,
+} as const;
+export type Track = keyof typeof TRACKS;
 
 /** زر موسيقى الدوري: لا يعمل تلقائياً أبداً، يشغّله الزائر بنفسه. الملف لا يُحمَّل حتى يُضغط الزر. */
-export function MusicButton() {
+/** `track`: أغنية الدوري في كل الصفحات، وأغنية الفرق عند فتح قسم الفرق. التبديل يتم فقط لو كانت الموسيقى شغّالة. */
+export function MusicButton({ track = 'anthem' }: { track?: Track }) {
   const ref = useRef<HTMLAudioElement>(null);
   const [playing, setPlaying] = useState(false);
   const [missing, setMissing] = useState(false);
@@ -13,6 +18,20 @@ export function MusicButton() {
     const a = ref.current;
     return () => a?.pause();
   }, []);
+
+  // عند تغيّر القسم: نبدّل الملف، ونواصل التشغيل فقط لو كان الزائر مشغّلها
+  const prev = useRef<Track>(track);
+  useEffect(() => {
+    if (prev.current === track) return;
+    prev.current = track;
+    const a = ref.current;
+    if (!a) return;
+    const was = !a.paused;
+    a.src = TRACKS[track];
+    a.load();
+    setMissing(false);
+    if (was) a.play().catch(() => setPlaying(false));
+  }, [track]);
 
   if (missing) return null;
 
@@ -34,7 +53,7 @@ export function MusicButton() {
 
   return (
     <>
-      <audio ref={ref} src={SRC} loop preload="none" onError={() => setMissing(true)} onPause={() => setPlaying(false)} onPlay={() => setPlaying(true)} />
+      <audio ref={ref} src={TRACKS[track]} loop preload="none" onError={() => setMissing(true)} onPause={() => setPlaying(false)} onPlay={() => setPlaying(true)} />
       <button type="button" className={`music-btn${playing ? ' is-on' : ''}`} onClick={() => void toggle()} aria-pressed={playing} aria-label={playing ? 'إيقاف أغنية الدوري' : 'تشغيل أغنية الدوري'}>
         <svg className="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
           <path d="M11 5 6 9H3v6h3l5 4V5z" />

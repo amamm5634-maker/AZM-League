@@ -164,7 +164,7 @@ export default function App() {
                 </a>
               ))}
             </nav>
-            <MusicButton />
+            <MusicButton track={current === 'teams' ? 'teams' : 'anthem'} />
             <a className="icon-btn" href="#/search" aria-label="بحث"><Icon name="search" /></a>
             <a className="btn btn-primary nav-cta" href="#/groups">
               المجموعات
