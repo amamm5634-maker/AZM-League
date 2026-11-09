@@ -101,6 +101,7 @@ export const ROSTERS: Record<string, RosterEntry[]> = {
     { name: 'إسماعيل أحمد', number: 20, position: 'جناح' },
     { name: 'مصدق محمد', number: 21, position: 'مهاجم' },
     { name: 'عبد الله بابكر', number: 22, position: 'مهاجم' },
+    { name: 'علام كمال', number: 23, position: 'جناح', photo: 'players/rural-alam.jpg' },
   ],
   // كلية الإنتاج الحيواني: كشف 17 لاعب الأسماء مؤكدة من صاحب الموقع، والمراكز وأرقام القمصان مؤقتة (تسلسلية) وتُعدَّل عند وصول الفعلية.
   'إنتاج حيواني': [
