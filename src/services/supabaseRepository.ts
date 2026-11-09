@@ -102,12 +102,12 @@ export class SupabaseRepository implements TournamentRepository {
       await this.recoverSession();
       [ms, ev, nw, ln, cd, sb] = await this.fetchAll();
     }
-    const err = ms.error ?? ev.error ?? nw.error;
-    if (err) throw new Error(err.message);
     // عمود locked غير موجود بعد (لم يُشغَّل news-lock.sql): نقرأ الأخبار بدونه كي لا تختفي
     if (nw.error && /locked/i.test(nw.error.message ?? '')) {
-      nw = await this.db.from('news').select('id,title,summary,tag,image_url,published_at').order('published_at', { ascending: false });
+      nw = (await this.db.from('news').select('id,title,summary,tag,image_url,published_at').order('published_at', { ascending: false })) as unknown as typeof nw;
     }
+    const err = ms.error ?? ev.error ?? nw.error;
+    if (err) throw new Error(err.message);
     // عمود positions غير موجود بعد (لم يُشغَّل lineup-positions.sql): نقرأ التشكيلات بدونه كي لا تختفي
     if (ln.error && /positions|formation/i.test(ln.error.message ?? '')) {
       ln = await this.db.from('match_lineups').select('match_id,team_id,player_ids,updated_at');
