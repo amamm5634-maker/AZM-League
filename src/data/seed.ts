@@ -22,7 +22,7 @@ const COLLEGES: { nickname: string; name: string; short: string; color: string; 
   { nickname: 'الطب البيطري', name: 'كلية الطب البيطري', short: 'بيط', color: '#4d7c0f' },
   { nickname: 'صحة عامة', name: 'كلية الصحة العامة', short: 'صحة', color: '#0369a1' },
   { nickname: 'دراسات اجتماعية واقتصادية', name: 'كلية الدراسات الاجتماعية والاقتصادية', short: 'دجت', color: '#a16207' },
-  { nickname: 'تنمية ريفية', name: 'كلية التنمية الريفية', short: 'ريف', color: '#166534' },
+  { nickname: 'تنمية ريفية', name: 'كلية التنمية الريفية', short: 'ريف', color: '#166534', logo: 'logos/rural-team.png' },
   { nickname: 'تطبيقية', name: 'الكلية التطبيقية', short: 'تطب', color: '#c2410c' },
   { nickname: 'طب', name: 'كلية الطب', short: 'طب', color: '#b91c1c' },
   { nickname: 'علوم إنسانية', name: 'كلية العلوم الإنسانية', short: 'إنس', color: '#6d28d9' },
