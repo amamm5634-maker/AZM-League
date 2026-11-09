@@ -11,6 +11,13 @@ import { lineupFor } from '../lib/lineup';
 
 type Side = 'home' | 'away';
 type Notice = { type: 'ok' | 'error'; text: string };
+type EventKind = 'goal' | 'yellow' | 'red' | 'sub';
+const KINDS: { id: EventKind; emoji: string; label: string }[] = [
+  { id: 'goal', emoji: '⚽', label: 'هدف' },
+  { id: 'yellow', emoji: '🟨', label: 'إنذار' },
+  { id: 'red', emoji: '🟥', label: 'طرد' },
+  { id: 'sub', emoji: '🔁', label: 'تبديل' },
+];
 
 /** وضع الميدان: شاشة بأزرار كبيرة لتسجيل مباراة واحدة بسرعة من الموبايل */
 export function QuickScorer() {
@@ -24,6 +31,7 @@ export function QuickScorer() {
   const [minute, setMinute] = useState('');
   const [lastSide, setLastSide] = useState<Side | null>(null);
   const [confirmEnd, setConfirmEnd] = useState(false);
+  const [kind, setKind] = useState<EventKind>('goal');
 
   // نختار تلقائياً المباراة الجارية، وإلا أقرب مباراة قادمة
   useEffect(() => {
@@ -128,6 +136,27 @@ export function QuickScorer() {
     }
   }
 
+  function onTeam(side: Side) {
+    if (kind === 'goal') onGoal(side);
+    else if (kind === 'sub') setPicking({ side, sub: true });
+    else setPicking({ side, card: kind });
+  }
+  const teamDisabled = (side: Side) =>
+    busy || (kind === 'sub' ? !lineupOf(side) || subsLeft(side) <= 0 : kind !== 'goal' && squad(side).length === 0);
+  const teamHint = (side: Side) =>
+    kind === 'sub' ? (!lineupOf(side) ? 'سجّل التشكيلة أولاً' : subsLeft(side) <= 0 ? 'استُنفدت التبديلات' : `متبقٍ ${subsLeft(side)} تبديلات`) : kind === 'goal' ? 'تسجيل هدف' : kind === 'yellow' ? 'بطاقة صفراء' : 'بطاقة حمراء';
+
+  // سجل المباراة: كل الأحداث في قائمة واحدة مرتبة بالدقيقة
+  const matchCards = cardsForMatch(state.cards, m.id);
+  const log = [
+    ...goals.map((e) => ({ key: `g${e.id}`, minute: e.minute, icon: '⚽', teamId: e.teamId, text: `${playerById(state, e.scorerId)?.name ?? ''}${e.assistId ? ` (صناعة: ${playerById(state, e.assistId)?.name})` : ''}`, canDelete: true, del: () => actions.deleteEvent(e.id) })),
+    ...matchCards.map((c) => ({ key: `c${c.id}`, minute: c.minute, icon: CARD_EMOJI[c.kind], teamId: c.teamId, text: playerById(state, c.playerId)?.name ?? '', canDelete: true, del: () => actions.deleteCard(c.id) })),
+    ...matchSubs.map((x) => ({ key: `s${x.id}`, minute: x.minute, icon: '🔁', teamId: x.teamId, text: `دخل ${playerById(state, x.inId)?.name} بدل ${playerById(state, x.outId)?.name}`, canDelete: canDeleteSub(matchSubs, x), del: () => actions.deleteSub(x.id) })),
+  ]
+    .map((r, i) => ({ r, i }))
+    .sort((a, b) => (a.r.minute ?? 999) - (b.r.minute ?? 999) || a.i - b.i)
+    .map((x) => x.r);
+
   async function undo() {
     const last = goals[goals.length - 1];
     if (last) {
@@ -155,7 +184,7 @@ export function QuickScorer() {
 
   return (
     <div className="quick">
-      <div className="field">
+      <div className="field qx-pick">
         <label htmlFor="q-match">المباراة</label>
         <select id="q-match" value={matchId} onChange={(e) => { setMatchId(e.target.value); setPicking(null); }}>
           {open.map((x) => (
@@ -166,96 +195,81 @@ export function QuickScorer() {
         </select>
       </div>
 
-      <div className="quick-board">
-        <span className={`chip st-${match.status}`}>{MATCH_STATUS_LABELS[match.status]}</span>
-        <span className="chip chip-soft">{GROUP_LABELS[match.group]}</span>
-        <div className="quick-teams">
-          {(['home', 'away'] as Side[]).map((side) => {
-            const t = teamOf(side);
-            const score = side === 'home' ? match.homeScore : match.awayScore;
-            return (
-              <div key={side} className="quick-team">
-                <TeamBadge team={t} size={64} />
-                <b className="qt-name">{t?.nickname}</b>
-                <span className="qt-score" aria-label={`نتيجة ${t?.nickname}`}>{score}</span>
-                <button type="button" className="quick-goal" disabled={busy} onClick={() => onGoal(side)}>
-                  ⚽ هدف
+      <div className="qx-main">
+        <section className="qx-board" aria-label="النتيجة">
+          <div className="qx-meta">
+            <span className={`chip st-${match.status}`}>{MATCH_STATUS_LABELS[match.status]}</span>
+            <span className="chip chip-soft">{GROUP_LABELS[match.group]}</span>
+          </div>
+          <div className="qx-score">
+            <div className="qx-side"><TeamBadge team={home} size={58} /><b>{home?.nickname}</b></div>
+            <div className="qx-nums" dir="ltr" aria-label={`النتيجة ${match.homeScore} - ${match.awayScore}`}>
+              <span>{match.awayScore}</span><i>-</i><span>{match.homeScore}</span>
+            </div>
+            <div className="qx-side"><TeamBadge team={away} size={58} /><b>{away?.nickname}</b></div>
+          </div>
+        </section>
+
+        <section className="qx-panel" aria-label="تسجيل حدث">
+          <div className="qx-kinds" role="radiogroup" aria-label="نوع الحدث">
+            {KINDS.map((k) => (
+              <button key={k.id} type="button" role="radio" aria-checked={kind === k.id} className={`qx-kind k-${k.id}${kind === k.id ? ' on' : ''}`} onClick={() => setKind(k.id)}>
+                <span className="ke" aria-hidden="true">{k.emoji}</span>
+                <span>{k.label}</span>
+              </button>
+            ))}
+          </div>
+          <p className="qx-step">اختر الفريق ثم اللاعب</p>
+          <div className="qx-teams">
+            {(['home', 'away'] as Side[]).map((side) => {
+              const t = teamOf(side);
+              return (
+                <button key={side} type="button" className={`qx-team k-${kind}`} disabled={teamDisabled(side)} onClick={() => onTeam(side)}>
+                  <TeamBadge team={t} size={46} />
+                  <b>{t?.nickname}</b>
+                  <small>{teamHint(side)}</small>
                 </button>
-                <div className="quick-cards">
-                  <button
-                    type="button"
-                    className="btn"
-                    disabled={busy || !lineupOf(side) || subsLeft(side) <= 0}
-                    onClick={() => setPicking({ side, sub: true })}
-                    aria-label={`تبديل لـ ${t?.nickname}`}
-                    title={!lineupOf(side) ? 'سجّل التشكيلة الأساسية أولاً' : `متبقٍ ${subsLeft(side)} تبديلات`}
-                  >
-                    🔁 <small>{lineupOf(side) ? subsLeft(side) : '—'}</small>
-                  </button>
-                  {(['yellow', 'red'] as CardKind[]).map((k) => (
-                    <button key={k} type="button" className="btn" disabled={busy || squad(side).length === 0} onClick={() => setPicking({ side, card: k })} aria-label={`${CARD_LABELS[k]} لـ ${t?.nickname}`}>
-                      {CARD_EMOJI[k]}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
+        </section>
+
+        {notice && <div className={`toast ${notice.type}`} role={notice.type === 'error' ? 'alert' : 'status'}><span>{notice.text}</span></div>}
+
+        <div className="qx-controls">
+          {match.status === 'scheduled' && (
+            <button type="button" className="btn btn-primary" disabled={busy} onClick={() => void run(actions.setScore(match.id, 0, 0))}>
+              ▶ بدء المباراة
+            </button>
+          )}
+          {match.status === 'live' && (
+            <button type="button" className={`btn ${confirmEnd ? 'btn-danger' : 'btn-dark'}`} disabled={busy} onClick={() => void finish()}>
+              {confirmEnd ? 'اضغط مرة ثانية لتأكيد الإنهاء' : '🏁 إنهاء المباراة'}
+            </button>
+          )}
+          <button type="button" className="btn" disabled={busy || (goals.length === 0 && match.homeScore + match.awayScore === 0)} onClick={() => void undo()}>
+            ↩ تراجع عن آخر هدف
+          </button>
         </div>
       </div>
 
-      {notice && <div className={`toast ${notice.type}`} role={notice.type === 'error' ? 'alert' : 'status'}><span>{notice.text}</span></div>}
-
-      <div className="quick-actions">
-        <button type="button" className="btn" disabled={busy || (goals.length === 0 && match.homeScore + match.awayScore === 0)} onClick={() => void undo()}>
-          ↩ تراجع عن آخر هدف
-        </button>
-        {match.status === 'scheduled' && (
-          <button type="button" className="btn btn-primary" disabled={busy} onClick={() => void run(actions.setScore(match.id, 0, 0))}>
-            ▶ بدء المباراة
-          </button>
+      <aside className="qx-log" aria-label="سجل المباراة">
+        <h3>سجل المباراة</h3>
+        {log.length === 0 ? (
+          <p className="qx-empty">لا أحداث بعد. اختر نوع الحدث ثم الفريق.</p>
+        ) : (
+          <ol>
+            {log.map((r) => (
+              <li key={r.key}>
+                <span className="qx-min" dir="ltr">{r.minute != null ? `${r.minute}'` : '—'}</span>
+                <span className="qx-ic" aria-hidden="true">{r.icon}</span>
+                <span className="qx-tx">{r.text}<small> ({teamById(state, r.teamId)?.nickname})</small></span>
+                <button type="button" className="btn" disabled={busy || !r.canDelete} onClick={() => void run(r.del())} aria-label="حذف الحدث">حذف</button>
+              </li>
+            ))}
+          </ol>
         )}
-        {match.status === 'live' && (
-          <button type="button" className={`btn ${confirmEnd ? 'btn-danger' : 'btn-dark'}`} disabled={busy} onClick={() => void finish()}>
-            {confirmEnd ? 'اضغط مرة ثانية لتأكيد الإنهاء' : '🏁 إنهاء المباراة'}
-          </button>
-        )}
-      </div>
-
-      {goals.length > 0 && (
-        <ol className="quick-log" aria-label="أهداف المباراة">
-          {goals.map((e) => (
-            <li key={e.id}>
-              <span dir="ltr">{e.minute != null ? `${e.minute}'` : '—'}</span> ⚽ {playerById(state, e.scorerId)?.name}
-              <small> ({teamById(state, e.teamId)?.nickname})</small>
-            </li>
-          ))}
-        </ol>
-      )}
-
-      {matchSubs.length > 0 && (
-        <ol className="quick-log" aria-label="تبديلات المباراة">
-          {matchSubs.map((s) => (
-            <li key={s.id}>
-              <span dir="ltr">{s.minute != null ? `${s.minute}'` : '—'}</span> 🔁 خرج {playerById(state, s.outId)?.name} ودخل {playerById(state, s.inId)?.name}
-              <small> ({teamById(state, s.teamId)?.nickname})</small>{' '}
-              <button type="button" className="btn" disabled={busy || !canDeleteSub(matchSubs, s)} onClick={() => void run(actions.deleteSub(s.id))} aria-label="حذف التبديل">حذف</button>
-            </li>
-          ))}
-        </ol>
-      )}
-
-      {cardsForMatch(state.cards, match.id).length > 0 && (
-        <ol className="quick-log" aria-label="بطاقات المباراة">
-          {cardsForMatch(state.cards, match.id).map((c) => (
-            <li key={c.id}>
-              <span dir="ltr">{c.minute != null ? `${c.minute}'` : '—'}</span> {CARD_EMOJI[c.kind]} {playerById(state, c.playerId)?.name}
-              <small> ({teamById(state, c.teamId)?.nickname})</small>{' '}
-              <button type="button" className="btn" disabled={busy} onClick={() => void run(actions.deleteCard(c.id))} aria-label="حذف البطاقة">حذف</button>
-            </li>
-          ))}
-        </ol>
-      )}
+      </aside>
 
       {picking && (
         <div className="quick-sheet" role="dialog" aria-modal="true" aria-label="اختيار اللاعب">
