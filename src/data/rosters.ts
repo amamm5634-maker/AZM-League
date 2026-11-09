@@ -122,4 +122,23 @@ export const ROSTERS: Record<string, RosterEntry[]> = {
     { name: 'حمدان', number: 16, position: 'مهاجم' },
     { name: 'عبد الله آدم', number: 17, position: 'مهاجم' },
   ],
+  // فريق المختبرات والتمريض: كشف 16 لاعب. الأسماء مؤكدة من صاحب الموقع، والمراكز وأرقام القمصان مؤقتة (تسلسلية) وتُعدَّل عند وصول الفعلية.
+  'مختبرات وتمريض': [
+    { name: 'محمد مصطفى عبد الوهاب', number: 1, position: 'حارس' },
+    { name: 'محمد خليفة إدريس', number: 2, position: 'حارس' },
+    { name: 'مرغني ماهر', number: 3, position: 'مدافع' },
+    { name: 'منصور هاشم', number: 4, position: 'مدافع' },
+    { name: 'نور الجليل غلام', number: 5, position: 'مدافع' },
+    { name: 'أحمد عبد العظيم', number: 6, position: 'مدافع' },
+    { name: 'محمد عصام', number: 7, position: 'وسط' },
+    { name: 'طه الصادق', number: 8, position: 'وسط' },
+    { name: 'عبد الرحمن الطيب الحاج', number: 9, position: 'وسط' },
+    { name: 'محمد فضل', number: 10, position: 'وسط' },
+    { name: 'مازن أبو عبيدة', number: 11, position: 'وسط' },
+    { name: 'محمود فتح الرحمن', number: 12, position: 'جناح' },
+    { name: 'مجتبى آدم', number: 13, position: 'جناح' },
+    { name: 'محمد الفاتح', number: 14, position: 'جناح' },
+    { name: 'صالح طلال', number: 15, position: 'مهاجم' },
+    { name: 'حسن حمزة', number: 16, position: 'مهاجم' },
+  ],
 };
