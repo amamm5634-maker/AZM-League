@@ -32,10 +32,12 @@ export function QuickScorer() {
   const [lastSide, setLastSide] = useState<Side | null>(null);
   const [confirmEnd, setConfirmEnd] = useState(false);
   const [kind, setKind] = useState<EventKind>('goal');
+  // بعد إنهاء المباراة نعرض اختيار أفضل لاعب (اختياري) لهذه المباراة
+  const [motmFor, setMotmFor] = useState<string | null>(null);
 
   // نختار تلقائياً المباراة الجارية، وإلا أقرب مباراة قادمة
   useEffect(() => {
-    if (matchId && state.matches.some((m) => m.id === matchId)) return;
+    if (matchId && open.some((m) => m.id === matchId)) return;
     const live = open.find((m) => m.status === 'live');
     setMatchId((live ?? open[0])?.id ?? '');
   }, [open, matchId, state.matches]);
@@ -60,8 +62,55 @@ export function QuickScorer() {
   }, [confirmEnd]);
 
   const match: Match | undefined = state.matches.find((m) => m.id === matchId);
+  // أفضل لاعب: يظهر بعد إنهاء المباراة ويمكن تخطيه. بعد ذلك لا يعدّله المسجّل (الأدمن فقط)
+  const motmMatch = motmFor ? state.matches.find((x) => x.id === motmFor) : undefined;
+  const motmSheet = motmMatch && (
+    <div className="quick-sheet" role="dialog" aria-modal="true" aria-label="اختيار أفضل لاعب">
+      <div className="qs-box">
+        <div className="qs-head">
+          <b>⭐ أفضل لاعب في المباراة؟</b>
+          <button type="button" className="btn" onClick={() => setMotmFor(null)}>تخطّي</button>
+        </div>
+        <p className="field-hint" style={{ margin: 0 }}>{teamById(state, motmMatch.homeId)?.nickname} {motmMatch.homeScore} - {motmMatch.awayScore} {teamById(state, motmMatch.awayId)?.nickname}</p>
+        {[motmMatch.homeId, motmMatch.awayId].map((tid) => (
+          <div key={tid}>
+            <h3 style={{ margin: '4px 0 8px' }}>{teamById(state, tid)?.name}</h3>
+            <div className="qs-grid">
+              {state.players.filter((p) => p.teamId === tid).sort((a, b) => a.number - b.number).map((p) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  className="qs-player"
+                  disabled={busy}
+                  onClick={async () => {
+                    setBusy(true);
+                    try {
+                      const r = await actions.setManOfMatch(motmMatch.id, p.id);
+                      setNotice(r.ok ? { type: 'ok', text: `أفضل لاعب: ${p.name}` } : { type: 'error', text: r.error ?? 'تعذّر الحفظ' });
+                      if (r.ok) setMotmFor(null);
+                    } finally {
+                      setBusy(false);
+                    }
+                  }}
+                >
+                  <b>{p.number}</b>
+                  <span>{p.name}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+
   if (!match) {
-    return <p className="card" style={{ marginTop: 14 }}>لا توجد مباريات متاحة للتسجيل الآن. يظهر الجدول بعد القرعة.</p>;
+    return (
+      <>
+        <p className="card" style={{ marginTop: 14 }}>لا توجد مباريات متاحة للتسجيل الآن. يظهر الجدول بعد القرعة.</p>
+        {motmSheet}
+      </>
+    );
   }
 
   const home = teamById(state, match.homeId);
@@ -176,7 +225,8 @@ export function QuickScorer() {
       return;
     }
     setConfirmEnd(false);
-    await run(actions.completeMatch(m.id));
+    const ok = await run(actions.completeMatch(m.id));
+    if (ok && state.players.some((p) => p.teamId === m.homeId || p.teamId === m.awayId)) setMotmFor(m.id);
   }
 
   const scorerPlayers = picking ? squad(picking.side) : [];
@@ -270,6 +320,8 @@ export function QuickScorer() {
           </ol>
         )}
       </aside>
+
+      {motmSheet}
 
       {picking && (
         <div className="quick-sheet" role="dialog" aria-modal="true" aria-label="اختيار اللاعب">
