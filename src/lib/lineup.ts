@@ -36,6 +36,12 @@ export function validateLineup(squad: Player[], playerIds: string[], positions?:
   return null;
 }
 
+/** طرق اللعب المتاحة للاختيار (دفاع-وسط-هجوم). "تلقائي" = تُحسب من مراكز اللاعبين. */
+export const FORMATIONS = ['4-4-2', '4-3-3', '4-2-3-1', '4-5-1', '4-1-4-1', '3-5-2', '3-4-3', '5-3-2', '5-4-1'] as const;
+export function isFormation(v: unknown): v is string {
+  return typeof v === 'string' && (FORMATIONS as readonly string[]).includes(v);
+}
+
 /** وقت بداية المباراة (التوقيت المحلي للسودان UTC+2 بلا توقيت صيفي) */
 export function kickoffTime(match: Match): number {
   return new Date(`${match.date}T${match.time}:00+02:00`).getTime();
@@ -78,8 +84,16 @@ export interface Formation {
   subs: Player[];
 }
 
+/** داخل الخط الواحد: الأجنحة على الطرفين والباقون في الوسط */
+function arrange(row: Player[]): Player[] {
+  const wings = row.filter((p) => p.position === 'جناح');
+  const rest = row.filter((p) => p.position !== 'جناح');
+  const half = Math.ceil(wings.length / 2);
+  return [...wings.slice(0, half), ...rest, ...wings.slice(half)];
+}
+
 /** يرتّب المختارين على الملعب حسب مراكزهم. الباقون من القائمة هم البدلاء */
-export function buildFormation(squad: Player[], playerIds: string[], positions?: Record<string, Position>): Formation {
+export function buildFormation(squad: Player[], playerIds: string[], positions?: Record<string, Position>, formation?: string): Formation {
   const ids = new Set(playerIds);
   // المراكز المختارة لهذه المباراة تحلّ محل المراكز المعتادة في الترتيب والعرض
   const starters = squad
@@ -95,8 +109,22 @@ export function buildFormation(squad: Player[], playerIds: string[], positions?:
   const gk = by('حارس');
   const def = by('مدافع');
   const mid = by('وسط');
-  const rows = [attack, mid, def, gk].filter((r) => r.length > 0);
-  const label = [def.length, mid.length, attack.length].join('-');
+  let rows = [attack, mid, def, gk].filter((r) => r.length > 0);
+  let label = [def.length, mid.length, attack.length].join('-');
+  // طريقة لعب مختارة: نوزّع لاعبي الميدان (دفاع ثم وسط ثم هجوم بترتيب مراكزهم) على خطوطها
+  if (isFormation(formation) && gk.length === 1) {
+    const parts = formation.split('-').map(Number);
+    const field = starters
+      .filter((p) => p.position !== 'حارس')
+      .sort((a, b) => POSITION_ORDER.indexOf(a.position) - POSITION_ORDER.indexOf(b.position) || a.number - b.number);
+    if (parts.reduce((a, b) => a + b, 0) === field.length) {
+      const lines: Player[][] = [];
+      let at = 0;
+      for (const n of parts) { lines.push(arrange(field.slice(at, at + n))); at += n; }
+      rows = [...lines.reverse(), gk];
+      label = formation;
+    }
+  }
   const subs = squad.filter((p) => !ids.has(p.id)).sort((a, b) => POSITION_ORDER.indexOf(a.position) - POSITION_ORDER.indexOf(b.position) || a.number - b.number);
   return { rows, label, subs };
 }

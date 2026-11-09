@@ -46,7 +46,7 @@ export interface Actions {
   deleteCard(cardId: string): Applied;
   addSub(input: SubInput): Applied;
   deleteSub(subId: string): Applied;
-  saveLineup(matchId: string, teamId: string, playerIds: string[], positions?: Record<string, Position>): Applied;
+  saveLineup(matchId: string, teamId: string, playerIds: string[], positions?: Record<string, Position>, formation?: string): Applied;
   addNews(input: NewsInput): Applied;
   deleteNews(id: string): Applied;
 }
@@ -149,7 +149,7 @@ export function TournamentProvider({ children }: { children: ReactNode }) {
       deleteCard: (cardId) => apply(repository.deleteCard(cardId)),
       addSub: (input) => apply(repository.addSub(input)),
       deleteSub: (subId) => apply(repository.deleteSub(subId)),
-      saveLineup: (matchId, teamId, playerIds, positions) => apply(repository.saveLineup(matchId, teamId, playerIds, positions)),
+      saveLineup: (matchId, teamId, playerIds, positions, formation) => apply(repository.saveLineup(matchId, teamId, playerIds, positions, formation)),
       addNews: (input) => apply(repository.addNews(input)),
       deleteNews: (id) => apply(repository.deleteNews(id)),
     }),

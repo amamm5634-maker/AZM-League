@@ -3,7 +3,7 @@
  * التشغيل: npm run check:lineup
  */
 import { buildSeed } from '../src/data/seed';
-import { LINEUP_SIZE, buildFormation, kickoffTime, latestLineup, lineupFor, lineupLock, validateLineup } from '../src/lib/lineup';
+import { FORMATIONS, LINEUP_SIZE, buildFormation, kickoffTime, latestLineup, lineupFor, lineupLock, validateLineup } from '../src/lib/lineup';
 import type { Lineup } from '../src/types';
 import { SupabaseRepository, lineupError } from '../src/services/supabaseRepository';
 
@@ -78,6 +78,27 @@ expect(calls[0]?.name === 'save_lineup' && JSON.stringify(calls[0].args) === JSO
 const bad = new SupabaseRepository({ rpc: async () => ({ error: { message: 'locked', code: '55000' } }) } as never, () => s);
 const r2 = await bad.saveLineup('m01', cs.id, good);
 expect(!r2.ok && r2.error.includes('مقفولة'), 'saveLineup يرجع رسالة القفل');
+
+// ---- طريقة اللعب المختارة ----
+const gk1 = squad.find((p) => p.position === 'حارس')!;
+const field10 = squad.filter((p) => p.position !== 'حارس').slice(0, 10).map((p) => p.id);
+const xi = [gk1.id, ...field10];
+for (const f of FORMATIONS) {
+  const fo = buildFormation(squad, xi, undefined, f);
+  const counts = fo.rows.map((r) => r.length);
+  expect(fo.label === f, `طريقة ${f} تُطبَّق`);
+  expect(counts[counts.length - 1] === 1 && counts.slice(0, -1).reverse().join('-') === f, `صفوف ${f} صحيحة (${counts.join('/')})`);
+  expect(fo.rows.flat().length === 11, `${f}: 11 لاعباً بلا تكرار`);
+}
+const badF = buildFormation(squad, xi, undefined, '4-4-3');
+expect(badF.label !== '4-4-3', 'طريقة غير معروفة تُتجاهل');
+const twoGk = squad.filter((p) => p.position === 'حارس').slice(0, 2).map((p) => p.id);
+const xi2 = [...twoGk, ...squad.filter((p) => p.position !== 'حارس').slice(0, 9).map((p) => p.id)];
+expect(buildFormation(squad, xi2, undefined, '4-4-2').label !== '4-4-2', 'حارسان: تُتجاهل الطريقة ويعود التلقائي');
+const resF = await repo.saveLineup('m01', cs.id, good, undefined, '4-3-3');
+expect(resF.ok && (calls[calls.length - 1].args as Record<string, unknown>).p_formation === '4-3-3', 'saveLineup يرسل p_formation');
+await repo.saveLineup('m01', cs.id, good, undefined, 'خطأ');
+expect(!('p_formation' in (calls[calls.length - 1].args as object)), 'طريقة غير صالحة لا تُرسل');
 
 if (errors.length) { console.error('❌ ' + errors.join('\n - ')); process.exit(1); }
 console.log('✅ check-lineup: كل الفحوصات نجحت');

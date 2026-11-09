@@ -2,7 +2,7 @@ import type { Lineup, Position, SubInput, CardInput, EventInput, GalleryPhoto, M
 import { buildSeed } from '../data/seed';
 import { validateEventInput, validateScore } from '../lib/validation';
 import { adjustScore } from '../lib/scoring';
-import { normalizePositions, validateLineup } from '../lib/lineup';
+import { isFormation, normalizePositions, validateLineup } from '../lib/lineup';
 import { planCard } from '../lib/cards';
 import { canDeleteSub, validateSub } from '../lib/subs';
 import type { NewsInput, PhotoInput, PhotoPage, PhotoQuery, PhotoUsage, Result, TournamentRepository } from './repository';
@@ -229,7 +229,7 @@ export class LocalStorageRepository implements TournamentRepository {
     return this.commit(state, 'أُعيدت المباراة إلى حالتها الأولى.');
   }
 
-  async saveLineup(matchId: string, teamId: string, playerIds: string[], positions?: Record<string, Position>): Promise<Result<TournamentState>> {
+  async saveLineup(matchId: string, teamId: string, playerIds: string[], positions?: Record<string, Position>, formation?: string): Promise<Result<TournamentState>> {
     const state = clone(this.read());
     const match = state.matches.find((m) => m.id === matchId);
     if (!match || (match.homeId !== teamId && match.awayId !== teamId)) return { ok: false, error: 'الفريق ليس طرفاً في هذه المباراة.' };
@@ -240,6 +240,7 @@ export class LocalStorageRepository implements TournamentRepository {
     const rest = (state.lineups ?? []).filter((l) => !(l.matchId === matchId && l.teamId === teamId));
     const entry: Lineup = { matchId, teamId, playerIds: [...playerIds], updatedAt: new Date().toISOString() };
     if (Object.keys(cleaned).length > 0) entry.positions = cleaned;
+    if (isFormation(formation)) entry.formation = formation;
     state.lineups = [...rest, entry];
     return this.commit(state, 'تم حفظ التشكيلة.');
   }
