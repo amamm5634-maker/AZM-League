@@ -19,18 +19,22 @@ export function MusicButton({ track = 'anthem' }: { track?: Track }) {
     return () => a?.pause();
   }, []);
 
-  // عند تغيّر القسم: نبدّل الملف، ونواصل التشغيل فقط لو كان الزائر مشغّلها
+  // نية الزائر: هل يريد الموسيقى شغّالة؟ (تغيير ملف الصوت يوقف المشغّل تلقائياً، فلا نعتمد على حالته)
+  const want = useRef(false);
+  const switching = useRef(false);
   const prev = useRef<Track>(track);
   useEffect(() => {
     if (prev.current === track) return;
     prev.current = track;
     const a = ref.current;
     if (!a) return;
-    const was = !a.paused;
-    a.src = TRACKS[track];
-    a.load();
+    switching.current = true;
     setMissing(false);
-    if (was) a.play().catch(() => setPlaying(false));
+    if (want.current) {
+      a.play().catch(() => setPlaying(false)).finally(() => { switching.current = false; });
+    } else {
+      switching.current = false;
+    }
   }, [track]);
 
   if (missing) return null;
@@ -39,6 +43,7 @@ export function MusicButton({ track = 'anthem' }: { track?: Track }) {
     const a = ref.current;
     if (!a) return;
     if (a.paused) {
+      want.current = true;
       try {
         await a.play();
         setPlaying(true);
@@ -46,6 +51,7 @@ export function MusicButton({ track = 'anthem' }: { track?: Track }) {
         setPlaying(false);
       }
     } else {
+      want.current = false;
       a.pause();
       setPlaying(false);
     }
@@ -53,7 +59,7 @@ export function MusicButton({ track = 'anthem' }: { track?: Track }) {
 
   return (
     <>
-      <audio ref={ref} src={TRACKS[track]} loop preload="none" onError={() => setMissing(true)} onPause={() => setPlaying(false)} onPlay={() => setPlaying(true)} />
+      <audio ref={ref} src={TRACKS[track]} loop preload="none" onError={() => setMissing(true)} onPause={() => { if (switching.current) return; want.current = false; setPlaying(false); }} onPlay={() => setPlaying(true)} />
       <button type="button" className={`music-btn${playing ? ' is-on' : ''}`} onClick={() => void toggle()} aria-pressed={playing} aria-label={playing ? 'إيقاف أغنية الدوري' : 'تشغيل أغنية الدوري'}>
         <svg className="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
           <path d="M11 5 6 9H3v6h3l5 4V5z" />
