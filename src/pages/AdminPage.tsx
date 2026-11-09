@@ -391,7 +391,11 @@ function MatchPanel({ match, run, busy, isAdmin }: { match: Match; run: Run; bus
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [confirmMatchReset, setConfirmMatchReset] = useState(false);
+  const [unlocked, setUnlocked] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
+  // المباراة المنتهية مقفلة للتعديل؛ الأدمن فقط يفتحها عمداً ثم يقفلها
+  const locked = match.status === 'completed' && !(isAdmin && unlocked);
+  const off = busy || locked;
 
   // تزامن حقول النتيجة عند تغيّرها بسبب تسجيل/حذف هدف
   useEffect(() => {
@@ -461,6 +465,22 @@ function MatchPanel({ match, run, busy, isAdmin }: { match: Match; run: Run; bus
 
   return (
     <div className="admin-panel" style={{ display: 'grid', gap: 16 }}>
+      {match.status === 'completed' && (
+        <section className="card" role="note" style={{ borderInlineStart: '4px solid var(--danger)' }}>
+          {locked ? (
+            <>
+              <p><b>🔒 المباراة منتهية ومقفلة.</b> {isAdmin ? 'افتحها إن أردت تصحيح خطأ.' : 'أي تعديل عليها يطلبه الأدمن.'}</p>
+              {isAdmin && <button type="button" className="btn btn-dark" style={{ marginTop: 8 }} onClick={() => setUnlocked(true)}>فتح المباراة للتعديل</button>}
+            </>
+          ) : (
+            <>
+              <p><b>🔓 المباراة مفتوحة للتعديل (أدمن).</b> التعديل يغيّر الترتيب والهدافين.</p>
+              <button type="button" className="btn" style={{ marginTop: 8 }} onClick={() => setUnlocked(false)}>قفل المباراة</button>
+            </>
+          )}
+        </section>
+      )}
+
       <section className="card" aria-labelledby="mp-title">
         <h2 id="mp-title">{home?.name} × {away?.name}</h2>
         <p style={{ color: 'var(--muted)', marginBottom: 12 }}>
@@ -472,19 +492,19 @@ function MatchPanel({ match, run, busy, isAdmin }: { match: Match; run: Run; bus
           <div className="score-inputs">
             <div className="field">
               <label htmlFor="score-home">{home?.nickname}</label>
-              <input id="score-home" type="number" inputMode="numeric" min={0} max={99} value={homeText} onChange={(e) => setHomeText(e.target.value)} />
+              <input id="score-home" type="number" inputMode="numeric" min={0} max={99} disabled={locked} value={homeText} onChange={(e) => setHomeText(e.target.value)} />
             </div>
             <span className="dash" aria-hidden="true">–</span>
             <div className="field">
               <label htmlFor="score-away">{away?.nickname}</label>
-              <input id="score-away" type="number" inputMode="numeric" min={0} max={99} value={awayText} onChange={(e) => setAwayText(e.target.value)} />
+              <input id="score-away" type="number" inputMode="numeric" min={0} max={99} disabled={locked} value={awayText} onChange={(e) => setAwayText(e.target.value)} />
             </div>
           </div>
           {localError && <p role="alert" style={{ color: 'var(--danger)', fontWeight: 600, marginTop: 8 }}>{localError}</p>}
           <p className="field-hint" style={{ marginTop: 6 }}>تتغير النتيجة تلقائياً عند تسجيل هدف، ويمكنك تعديلها يدوياً من هنا.</p>
           <div className="form-actions" style={{ marginTop: 10 }}>
-            <button type="submit" className="btn btn-dark" disabled={busy}>حفظ النتيجة</button>
-            <button type="button" className="btn btn-primary" onClick={finish} disabled={busy || match.status === 'completed'}>
+            <button type="submit" className="btn btn-dark" disabled={off}>حفظ النتيجة</button>
+            <button type="button" className="btn btn-primary" onClick={finish} disabled={off || match.status === 'completed'}>
               {match.status === 'completed' ? 'المباراة منتهية' : 'إنهاء المباراة'}
             </button>
           </div>
@@ -510,7 +530,7 @@ function MatchPanel({ match, run, busy, isAdmin }: { match: Match; run: Run; bus
           <select
             id="motm"
             value={match.motmId ?? ''}
-            disabled={busy}
+            disabled={off}
             onChange={(e) => run(actions.setManOfMatch(match.id, e.target.value || null))}
           >
             <option value="">— بدون —</option>
@@ -531,6 +551,7 @@ function MatchPanel({ match, run, busy, isAdmin }: { match: Match; run: Run; bus
       <section className="card" aria-labelledby="ev-form-title">
         <h2 id="ev-form-title">{editingId ? 'تعديل الهدف' : 'تسجيل هدف'}</h2>
         <form ref={formRef} onSubmit={submitEvent} noValidate className="form-grid">
+          <fieldset disabled={locked} style={{ border: 0, padding: 0, margin: 0, minWidth: 0, display: 'contents' }}>
           <div className="field">
             <label htmlFor="ev-team">الفريق</label>
             <select
@@ -580,8 +601,9 @@ function MatchPanel({ match, run, busy, isAdmin }: { match: Match; run: Run; bus
             />
             <span className="field-hint">رقم بين 1 و120.</span>
           </div>
+          </fieldset>
           <div className="form-actions">
-            <button type="submit" className="btn btn-primary" disabled={busy}>
+            <button type="submit" className="btn btn-primary" disabled={off}>
               {editingId ? 'حفظ التعديل' : 'تسجيل الهدف'}
             </button>
             {editingId && (
@@ -609,8 +631,8 @@ function MatchPanel({ match, run, busy, isAdmin }: { match: Match; run: Run; bus
                     <span className="sub">{team?.name}{assister ? ` · صناعة: ${assister.name}` : ''}</span>
                   </div>
                   <div className="actions">
-                    <button type="button" className="btn" onClick={() => startEdit(ev)} disabled={busy}>تعديل</button>
-                    <button type="button" className="btn btn-danger" onClick={() => setDeleteId(ev.id)} disabled={busy}>حذف</button>
+                    <button type="button" className="btn" onClick={() => startEdit(ev)} disabled={off}>تعديل</button>
+                    <button type="button" className="btn btn-danger" onClick={() => setDeleteId(ev.id)} disabled={off}>حذف</button>
                   </div>
                 </li>
               );
