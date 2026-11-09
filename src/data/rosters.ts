@@ -26,14 +26,14 @@ export const ROSTERS: Record<string, RosterEntry[]> = {
   // كلية علوم الحاسوب: القائمة المختارة للدوري (22 لاعب). أرقام القمصان تسلسلية بترتيب القائمة، تُعدَّل عند وصول الأرقام الفعلية.
   'حاسوب': [
     { name: 'حسين علي', number: 1, position: 'حارس', photo: 'players/cs-hussein.jpg' },
-    { name: 'طيفور عبد الله', number: 2, position: 'حارس' },
+    { name: 'طيفور عبد الله', number: 2, position: 'حارس', photo: 'players/cs-taifor.jpg' },
     { name: 'محسن تشارلز', number: 3, position: 'مدافع', photo: 'players/cs-mohsin.jpg' },
     { name: 'فضل عبدو', number: 4, position: 'مدافع', photo: 'players/cs-fadl.jpg' },
     { name: 'أحمد عاطف', number: 5, position: 'مدافع' },
     { name: 'أكرم', number: 6, position: 'مدافع', photo: 'players/cs-akram.jpg' },
     { name: 'معاوية زين العابدين', number: 7, position: 'مدافع', photo: 'players/cs-muawia.jpg' },
-    { name: 'محمد يوسف', number: 8, position: 'مدافع' },
-    { name: 'عثمان أسامة', number: 9, position: 'مدافع' },
+    { name: 'محمد يوسف', number: 8, position: 'مدافع', photo: 'players/cs-mohamed-yousif.jpg' },
+    { name: 'عثمان أسامة', number: 9, position: 'مدافع', photo: 'players/cs-osman-osama.jpg' },
     { name: 'السماني فتح الدين', number: 10, position: 'وسط' },
     {
       name: 'محمد إمام',
@@ -43,7 +43,7 @@ export const ROSTERS: Record<string, RosterEntry[]> = {
       // لاحقاً: صورة ليلية بإضافة photos: [{ src: '...', from: 18, to: 6 }]
     },
     { name: 'غسان بكري محمد عثمان', number: 12, position: 'وسط', photo: 'players/cs-ghassan.jpg' },
-    { name: 'أحمد محمد أحمد', number: 13, position: 'وسط' },
+    { name: 'أحمد محمد أحمد', number: 13, position: 'وسط', photo: 'players/cs-ahmed-mohamed.jpg' },
     { name: 'عمر تيسير', number: 14, position: 'وسط', photo: 'players/cs-omar.jpg' },
     { name: 'عثمان التيكل', number: 15, position: 'وسط', photo: 'players/cs-othman.jpg' },
     { name: 'الطيب خلف الله', number: 16, position: 'جناح', photo: 'players/cs-taib.jpg' },

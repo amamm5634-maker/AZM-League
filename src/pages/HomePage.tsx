@@ -57,7 +57,9 @@ export function HomePage() {
   const wordMain = nameParts.length > 1 ? nameParts.slice(1).join(' ') : nameParts[0];
   const wordPre = nameParts.length > 1 ? nameParts[0] : '';
   const latest = latestResults(state, 3);
-  const upcoming = sortMatches(state.matches).filter((m) => m.status !== 'completed').slice(0, 3);
+  const liveNow = sortMatches(state.matches).filter((m) => m.status === 'live');
+  // أثناء وجود مباراة جارية تحلّ محل "القادمة"، وبعد انتهائها تعود القادمة
+  const upcoming = liveNow.length > 0 ? liveNow : sortMatches(state.matches).filter((m) => m.status !== 'completed').slice(0, 3);
   const news = [...state.news].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 3);
   const drawn = isDrawn(state);
   const target = countdownTarget(drawn);
@@ -109,7 +111,7 @@ export function HomePage() {
 
       <section className="section" aria-labelledby="next-title">
         <div className="section-title">
-          <h2 id="next-title">المباريات القادمة</h2>
+          <h2 id="next-title">{liveNow.length > 0 ? <><span className="live-dot" aria-hidden="true" /> {liveNow.length > 1 ? 'المباريات الجارية الآن' : 'المباراة الجارية الآن'}</> : 'المباريات القادمة'}</h2>
           <a className="link-more" href="#/fixtures">كل المباريات</a>
         </div>
         {upcoming.length > 0 ? (
