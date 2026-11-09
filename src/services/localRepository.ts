@@ -1,8 +1,8 @@
-import type { SubInput, CardInput, EventInput, GalleryPhoto, Match, MatchEvent, MatchMessage, PredictionChoice, PredictionCounts, TournamentState } from '../types';
+import type { Lineup, Position, SubInput, CardInput, EventInput, GalleryPhoto, Match, MatchEvent, MatchMessage, PredictionChoice, PredictionCounts, TournamentState } from '../types';
 import { buildSeed } from '../data/seed';
 import { validateEventInput, validateScore } from '../lib/validation';
 import { adjustScore } from '../lib/scoring';
-import { validateLineup } from '../lib/lineup';
+import { normalizePositions, validateLineup } from '../lib/lineup';
 import { planCard } from '../lib/cards';
 import { canDeleteSub, validateSub } from '../lib/subs';
 import type { NewsInput, PhotoInput, PhotoPage, PhotoQuery, PhotoUsage, Result, TournamentRepository } from './repository';
@@ -229,14 +229,18 @@ export class LocalStorageRepository implements TournamentRepository {
     return this.commit(state, 'أُعيدت المباراة إلى حالتها الأولى.');
   }
 
-  async saveLineup(matchId: string, teamId: string, playerIds: string[]): Promise<Result<TournamentState>> {
+  async saveLineup(matchId: string, teamId: string, playerIds: string[], positions?: Record<string, Position>): Promise<Result<TournamentState>> {
     const state = clone(this.read());
     const match = state.matches.find((m) => m.id === matchId);
     if (!match || (match.homeId !== teamId && match.awayId !== teamId)) return { ok: false, error: 'الفريق ليس طرفاً في هذه المباراة.' };
-    const problem = validateLineup(state.players.filter((p) => p.teamId === teamId), playerIds);
+    const squad = state.players.filter((p) => p.teamId === teamId);
+    const cleaned = normalizePositions(squad, playerIds, positions);
+    const problem = validateLineup(squad, playerIds, cleaned);
     if (problem) return { ok: false, error: problem };
     const rest = (state.lineups ?? []).filter((l) => !(l.matchId === matchId && l.teamId === teamId));
-    state.lineups = [...rest, { matchId, teamId, playerIds: [...playerIds], updatedAt: new Date().toISOString() }];
+    const entry: Lineup = { matchId, teamId, playerIds: [...playerIds], updatedAt: new Date().toISOString() };
+    if (Object.keys(cleaned).length > 0) entry.positions = cleaned;
+    state.lineups = [...rest, entry];
     return this.commit(state, 'تم حفظ التشكيلة.');
   }
 

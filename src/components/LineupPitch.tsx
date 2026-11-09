@@ -1,18 +1,18 @@
 import type { CSSProperties } from 'react';
-import type { Player, Team } from '../types';
+import type { Player, Position, Team } from '../types';
 import { buildFormation } from '../lib/lineup';
 import { assetUrl } from '../lib/asset';
 
 /** يعرض التشكيلة الأساسية التي سجّلها المسؤول على الملعب، والباقون من قائمة الفريق بدلاء */
 export interface PlayerMark { out?: boolean; in?: boolean; yellow?: boolean; red?: boolean }
 
-export function LineupPitch({ squad, lineupIds, team, marks }: { squad: Player[]; lineupIds: string[]; team: Team; marks?: Record<string, PlayerMark> }) {
+export function LineupPitch({ squad, lineupIds, positions, team, marks }: { squad: Player[]; lineupIds: string[]; positions?: Record<string, Position>; team: Team; marks?: Record<string, PlayerMark> }) {
   const badge = (id: string) => {
     const m = marks?.[id];
     if (!m) return '';
     return `${m.red ? ' 🟥' : m.yellow ? ' 🟨' : ''}${m.out ? ' 🔻' : ''}${m.in ? ' 🔺' : ''}`;
   };
-  const { rows, label, subs } = buildFormation(squad, lineupIds);
+  const { rows, label, subs } = buildFormation(squad, lineupIds, positions);
   const pitchStyle = {
     '--tc': team.color,
     '--pitch-photo': `url("${assetUrl('images/field-lineup.jpg')}")`,

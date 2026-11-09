@@ -659,6 +659,12 @@ a.sponsor:hover { background: rgba(255, 255, 255, 0.12); transform: translateY(-
 .le-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 8px; }
 .le-player { display: flex; align-items: center; gap: 8px; min-height: 48px; padding: 6px 10px; border-radius: 12px; border: 1px solid var(--line); background: var(--paper); color: inherit; font: inherit; text-align: start; cursor: pointer; }
 .le-player.on { border-color: var(--lime); background: rgba(184, 242, 58, 0.14); }
+.le-cell { display: grid; gap: 4px; min-width: 0; }
+.le-cell .le-player { width: 100%; }
+.le-pos { display: flex; align-items: center; gap: 6px; font-size: 0.78rem; color: var(--muted, #9fb0c3); padding-inline: 4px; }
+.le-pos select { flex: 1; min-width: 0; min-height: 34px; border-radius: 8px; border: 1px solid var(--line); background: var(--paper); color: inherit; font: inherit; padding: 2px 6px; }
+.le-cell.custom .le-pos { color: var(--lime); font-weight: 700; }
+.le-cell.custom .le-pos select { border-color: var(--lime); }
 .le-player:disabled { opacity: 0.45; cursor: not-allowed; }
 .le-name { flex: 1; min-width: 0; overflow-wrap: anywhere; }
 .le-tick { color: var(--lime); font-weight: 900; }

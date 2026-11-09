@@ -106,7 +106,7 @@ export function MatchPage({ matchId }: { matchId: string }) {
                     <div key={s.team.id}>
                       <h3 className="lineup-team">{s.team.name}</h3>
                       {s.lineup ? (
-                        <LineupPitch squad={state.players.filter((p) => p.teamId === s.team.id)} lineupIds={s.lineup.playerIds} team={s.team} marks={marks} />
+                        <LineupPitch squad={state.players.filter((p) => p.teamId === s.team.id)} lineupIds={s.lineup.playerIds} positions={s.lineup.positions} team={s.team} marks={marks} />
                       ) : (
                         <p className="notice" role="note">لم تُعلن تشكيلة {s.team.nickname} بعد.</p>
                       )}

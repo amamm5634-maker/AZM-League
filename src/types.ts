@@ -90,6 +90,8 @@ export interface Lineup {
   matchId: string;
   teamId: string;
   playerIds: string[]; // 11 معرّفاً من لاعبي الفريق نفسه
+  /** مراكز تخالف مركز اللاعب المعتاد في هذه المباراة فقط (مثل جناح يلعب وسطاً الليلة). الغائب = مركزه المعتاد */
+  positions?: Record<string, Position>;
   updatedAt?: string; // ISO
 }
 

@@ -44,7 +44,7 @@ export function computeAwards(state: TournamentState): Record<string, AwardKind[
     for (const side of ['home', 'away'] as const) {
       const teamId = side === 'home' ? m.homeId : m.awayId;
       const lineup = lineupFor(state, m.id, teamId);
-      const keeper = lineup?.playerIds.map((id) => state.players.find((p) => p.id === id)).find((p) => p?.position === 'حارس');
+      const keeper = lineup?.playerIds.map((id) => state.players.find((p) => p.id === id)).find((p) => p && (lineup?.positions?.[p.id] ?? p.position) === 'حارس');
       if (!keeper) continue;
       const against = side === 'home' ? m.awayScore : m.homeScore;
       conceded.set(keeper.id, (conceded.get(keeper.id) ?? 0) + against);

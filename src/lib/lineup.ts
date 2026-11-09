@@ -7,13 +7,32 @@ const POSITION_ORDER: Position[] = ['حارس', 'مدافع', 'وسط', 'جنا�
 export const LINEUP_LOCK_MINUTES_BEFORE = 0;
 
 /** يتحقق من اختيار 11 لاعباً: العدد، عدم التكرار، الانتماء للفريق، وجود حارس. يرجع رسالة عربية أو null إن كان سليماً */
-export function validateLineup(squad: Player[], playerIds: string[]): string | null {
+/** مركز اللاعب في هذه التشكيلة: المختار لهذه المباراة إن وُجد، وإلا مركزه المعتاد */
+export function effectivePosition(p: Player, positions?: Record<string, Position>): Position {
+  const o = positions?.[p.id];
+  return o && POSITION_ORDER.includes(o) ? o : p.position;
+}
+
+/** يُبقي فقط المراكز المختلفة عن المعتاد ولاعبي التشكيلة (حتى لا نخزّن ما لا لزوم له) */
+export function normalizePositions(squad: Player[], playerIds: string[], positions?: Record<string, Position>): Record<string, Position> {
+  const out: Record<string, Position> = {};
+  if (!positions) return out;
+  const byId = new Map(squad.map((p) => [p.id, p]));
+  for (const id of playerIds) {
+    const p = byId.get(id);
+    const o = positions[id];
+    if (p && o && POSITION_ORDER.includes(o) && o !== p.position) out[id] = o;
+  }
+  return out;
+}
+
+export function validateLineup(squad: Player[], playerIds: string[], positions?: Record<string, Position>): string | null {
   if (playerIds.length !== LINEUP_SIZE) return `اختر ${LINEUP_SIZE} لاعباً بالضبط (المختار ${playerIds.length}).`;
   if (new Set(playerIds).size !== playerIds.length) return 'يوجد لاعب مكرر في التشكيلة.';
   const byId = new Map(squad.map((p) => [p.id, p]));
   const picked = playerIds.map((id) => byId.get(id));
   if (picked.some((p) => !p)) return 'يوجد لاعب ليس من قائمة هذا الفريق.';
-  if (!picked.some((p) => p!.position === 'حارس')) return 'يجب أن يكون في التشكيلة حارس مرمى.';
+  if (!picked.some((p) => effectivePosition(p!, positions) === 'حارس')) return 'يجب أن يكون في التشكيلة حارس مرمى.';
   return null;
 }
 
@@ -60,9 +79,13 @@ export interface Formation {
 }
 
 /** يرتّب المختارين على الملعب حسب مراكزهم. الباقون من القائمة هم البدلاء */
-export function buildFormation(squad: Player[], playerIds: string[]): Formation {
+export function buildFormation(squad: Player[], playerIds: string[], positions?: Record<string, Position>): Formation {
   const ids = new Set(playerIds);
-  const starters = squad.filter((p) => ids.has(p.id)).sort((a, b) => a.number - b.number);
+  // المراكز المختارة لهذه المباراة تحلّ محل المراكز المعتادة في الترتيب والعرض
+  const starters = squad
+    .filter((p) => ids.has(p.id))
+    .map((p) => ({ ...p, position: effectivePosition(p, positions) }))
+    .sort((a, b) => a.number - b.number);
   const by = (pos: Position) => starters.filter((p) => p.position === pos);
   const wings = by('جناح');
   const strikers = by('مهاجم');

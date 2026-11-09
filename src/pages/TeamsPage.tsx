@@ -135,7 +135,7 @@ export function TeamDetailPage({ teamId }: { teamId: string }) {
             <p className="field-hint" style={{ textAlign: 'center', marginBottom: 8 }}>
               مباراة <a href={`#/match/${latest.match.id}`}>{matchLabel(state, latest.match)}</a> · {formatArabicDate(latest.match.date)}
             </p>
-            <LineupPitch squad={squad} lineupIds={latest.lineup.playerIds} team={team} />
+            <LineupPitch squad={squad} lineupIds={latest.lineup.playerIds} positions={latest.lineup.positions} team={team} />
           </>
         ) : (
           squad.length > 0 && <p className="notice" role="note">لم تُعلن التشكيلة الأساسية بعد، وتظهر هنا فور تسجيلها قبل المباراة. قائمة اللاعبين بالأسفل.</p>

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import type { Match, Player, Position, Team } from '../types';
 import { formatArabicDate, sortMatches, teamById } from '../lib/stats';
 import { matchLabel } from '../lib/gallery';
-import { LINEUP_SIZE, buildFormation, kickoffTime, lineupFor, lineupLock, validateLineup } from '../lib/lineup';
+import { LINEUP_SIZE, buildFormation, kickoffTime, lineupFor, lineupLock, normalizePositions, validateLineup } from '../lib/lineup';
 import { useData, useTournament } from '../store';
 import { EmptyState } from '../components/StateViews';
 import { TeamBadge } from '../components/TeamBadge';
@@ -66,6 +66,8 @@ function TeamLineupEditor({ match, team, isAdmin }: { match: Match; team: Team; 
   );
   const saved = lineupFor(state, match.id, team.id);
   const [ids, setIds] = useState<string[]>(saved?.playerIds ?? []);
+  // مراكز تخالف المعتاد في هذه المباراة فقط (مثل جناح يلعب وسطاً الليلة)
+  const [ovr, setOvr] = useState<Record<string, Position>>(saved?.positions ?? {});
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<{ type: 'ok' | 'error'; text: string } | null>(null);
   const [now, setNow] = useState(() => Date.now());
@@ -78,32 +80,52 @@ function TeamLineupEditor({ match, team, isAdmin }: { match: Match; team: Team; 
 
   const lock = lineupLock(match, now, isAdmin);
   const adminOverride = isAdmin && (match.status !== 'scheduled');
-  const problem = ids.length === LINEUP_SIZE ? validateLineup(squad, ids) : null;
+  const cleaned = useMemo(() => normalizePositions(squad, ids, ovr), [squad, ids, ovr]);
+  const problem = ids.length === LINEUP_SIZE ? validateLineup(squad, ids, cleaned) : null;
   const canSave = !lock.locked && !busy && ids.length === LINEUP_SIZE && !problem;
-  const formation = ids.length > 0 ? buildFormation(squad, ids).label : null;
-  const unchanged = !!saved && saved.playerIds.length === ids.length && saved.playerIds.every((id) => ids.includes(id));
+  const formation = ids.length > 0 ? buildFormation(squad, ids, cleaned).label : null;
+  const samePositions = JSON.stringify(Object.entries(saved?.positions ?? {}).sort()) === JSON.stringify(Object.entries(cleaned).sort());
+  const unchanged = !!saved && saved.playerIds.length === ids.length && saved.playerIds.every((id) => ids.includes(id)) && samePositions;
   // آخر تشكيلة سجّلها هذا الفريق في مباراة أخرى (الأحدث بحسب موعد المباراة)، لتكون نقطة بداية سريعة
   const previous = useMemo(() => {
-    let best: { ids: string[]; t: number } | undefined;
+    let best: { ids: string[]; positions?: Record<string, Position>; t: number } | undefined;
     for (const l of state.lineups ?? []) {
       if (l.teamId !== team.id || l.matchId === match.id) continue;
       const m = state.matches.find((x) => x.id === l.matchId);
       const t = m ? kickoffTime(m) : 0;
-      if (!best || t > best.t) best = { ids: l.playerIds, t };
+      if (!best || t > best.t) best = { ids: l.playerIds, positions: l.positions, t };
     }
-    return best?.ids;
+    return best;
   }, [state.lineups, state.matches, team.id, match.id]);
 
   const toggle = (id: string) => {
     if (lock.locked) return;
     setNotice(null);
+    // عند إلغاء اختيار لاعب نمسح المركز المخصص له
+    setOvr((cur) => {
+      if (!(id in cur)) return cur;
+      const next = { ...cur };
+      if (ids.includes(id)) delete next[id];
+      return next;
+    });
     setIds((cur) => (cur.includes(id) ? cur.filter((x) => x !== id) : cur.length >= LINEUP_SIZE ? cur : [...cur, id]));
+  };
+
+  const setPlayerPos = (p: Player, value: Position) => {
+    if (lock.locked) return;
+    setNotice(null);
+    setOvr((cur) => {
+      const next = { ...cur };
+      if (value === p.position) delete next[p.id];
+      else next[p.id] = value;
+      return next;
+    });
   };
 
   const save = async () => {
     setBusy(true);
     setNotice(null);
-    const res = await actions.saveLineup(match.id, team.id, ids);
+    const res = await actions.saveLineup(match.id, team.id, ids, cleaned);
     setBusy(false);
     setNotice(res.ok ? { type: 'ok', text: res.message } : { type: 'error', text: res.error });
   };
@@ -136,19 +158,29 @@ function TeamLineupEditor({ match, team, isAdmin }: { match: Match; team: Team; 
                 <div className="le-grid">
                   {list.map((p) => {
                     const on = ids.includes(p.id);
+                    const custom = on && cleaned[p.id];
                     return (
-                      <button
-                        key={p.id}
-                        type="button"
-                        className={`le-player${on ? ' on' : ''}`}
-                        aria-pressed={on}
-                        disabled={lock.locked || (!on && ids.length >= LINEUP_SIZE)}
-                        onClick={() => toggle(p.id)}
-                      >
-                        <span className="num-badge">{p.number}</span>
-                        <span className="le-name">{p.name}</span>
-                        <span className="le-tick" aria-hidden="true">{on ? '✓' : ''}</span>
-                      </button>
+                      <div key={p.id} className={`le-cell${custom ? ' custom' : ''}`}>
+                        <button
+                          type="button"
+                          className={`le-player${on ? ' on' : ''}`}
+                          aria-pressed={on}
+                          disabled={lock.locked || (!on && ids.length >= LINEUP_SIZE)}
+                          onClick={() => toggle(p.id)}
+                        >
+                          <span className="num-badge">{p.number}</span>
+                          <span className="le-name">{p.name}</span>
+                          <span className="le-tick" aria-hidden="true">{on ? '✓' : ''}</span>
+                        </button>
+                        {on && (
+                          <label className="le-pos">
+                            <span>يلعب الليلة كـ</span>
+                            <select value={ovr[p.id] ?? p.position} disabled={lock.locked} onChange={(e) => setPlayerPos(p, e.target.value as Position)}>
+                              {POSITIONS.map((x) => <option key={x} value={x}>{x}{x === p.position ? ' (المعتاد)' : ''}</option>)}
+                            </select>
+                          </label>
+                        )}
+                      </div>
                     );
                   })}
                 </div>
@@ -169,13 +201,18 @@ function TeamLineupEditor({ match, team, isAdmin }: { match: Match; team: Team; 
                 type="button"
                 className="btn"
                 disabled={busy}
-                onClick={() => { setIds(previous.filter((id) => squad.some((p) => p.id === id))); setNotice(null); }}
+                onClick={() => {
+                  const keep = previous.ids.filter((id) => squad.some((p) => p.id === id));
+                  setIds(keep);
+                  setOvr(normalizePositions(squad, keep, previous.positions));
+                  setNotice(null);
+                }}
               >
                 نسخ آخر تشكيلة
               </button>
             )}
             {ids.length > 0 && !lock.locked && (
-              <button type="button" className="btn" disabled={busy} onClick={() => { setIds([]); setNotice(null); }}>مسح الاختيار</button>
+              <button type="button" className="btn" disabled={busy} onClick={() => { setIds([]); setOvr({}); setNotice(null); }}>مسح الاختيار</button>
             )}
           </div>
           {notice && (

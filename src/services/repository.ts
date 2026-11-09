@@ -1,4 +1,4 @@
-import type { SubInput, CardInput, EventInput, GalleryPhoto, MatchMessage, PredictionChoice, PredictionCounts, TournamentState } from '../types';
+import type { Position, SubInput, CardInput, EventInput, GalleryPhoto, MatchMessage, PredictionChoice, PredictionCounts, TournamentState } from '../types';
 
 export type Result<T = void> =
   | { ok: true; data: T; message: string }
@@ -54,7 +54,7 @@ export interface TournamentRepository {
   resetMatch(matchId: string): Promise<Result<TournamentState>>;
   reset(): Promise<Result<TournamentState>>;
   /** يسجّل التشكيلة الأساسية (11 لاعباً) لفريق في مباراة. للمسجّل والأدمن؛ تُقفل عند بداية المباراة إلا للأدمن */
-  saveLineup(matchId: string, teamId: string, playerIds: string[]): Promise<Result<TournamentState>>;
+  saveLineup(matchId: string, teamId: string, playerIds: string[], positions?: Record<string, Position>): Promise<Result<TournamentState>>;
   /** يسجّل بطاقة. أصفر ثانٍ لنفس اللاعب في المباراة يُضيف أحمر تلقائياً */
   addCard(input: CardInput): Promise<Result<TournamentState>>;
   deleteCard(cardId: string): Promise<Result<TournamentState>>;

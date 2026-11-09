@@ -1,9 +1,10 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { planCard } from '../lib/cards';
 import { canDeleteSub, validateSub } from '../lib/subs';
-import type { SubInput, MatchSub, CardInput, EventInput, GalleryPhoto, Lineup, MatchCard, Match, MatchEvent, MatchMessage, NewsItem, PredictionChoice, PredictionCounts, TournamentState } from '../types';
+import type { Position, SubInput, MatchSub, CardInput, EventInput, GalleryPhoto, Lineup, MatchCard, Match, MatchEvent, MatchMessage, NewsItem, PredictionChoice, PredictionCounts, TournamentState } from '../types';
 import { buildSeed } from '../data/seed';
 import { adjustScore } from '../lib/scoring';
+import { normalizePositions } from '../lib/lineup';
 import { validateEventInput, validateScore } from '../lib/validation';
 import { CAPTION_MAX, PHOTO_MAX_BYTES, extForMime } from '../lib/gallery';
 import type { NewsInput, PhotoInput, PhotoPage, PhotoQuery, PhotoUsage, Result, TournamentRepository } from './repository';
@@ -36,7 +37,7 @@ interface PhotoRow {
 }
 interface CardRow { id: string; match_id: string; team_id: string; player_id: string; kind: 'yellow' | 'red'; minute: number | null }
 interface SubRow { id: string; match_id: string; team_id: string; out_id: string; in_id: string; minute: number | null }
-interface LineupRow { match_id: string; team_id: string; player_ids: string[]; updated_at: string | null }
+interface LineupRow { match_id: string; team_id: string; player_ids: string[]; updated_at: string | null; positions?: Record<string, Position> | null }
 interface MessageRow { id: string; match_id: string; author: string; body: string; status: MatchMessage['status']; created_at: string }
 interface NewsRow { id: string; title: string; summary: string; tag: string; image_url: string | null; published_at: string }
 
@@ -45,6 +46,7 @@ export function lineupError(error: DbError): { ok: false; error: string } {
   const msg = error?.message ?? '';
   if (/locked/i.test(msg)) return { ok: false, error: 'التشكيلة مقفولة لأن المباراة بدأت. اطلب من الأدمن تعديلها.' };
   if (/player_not_in_team|invalid_players/i.test(msg)) return { ok: false, error: 'التشكيلة غير صالحة: اختر 11 لاعباً مختلفاً من قائمة الفريق نفسه.' };
+  if (/invalid_positions/i.test(msg)) return { ok: false, error: 'المراكز المختارة لهذه التشكيلة غير صالحة.' };
   if (/invalid_match|invalid_team/i.test(msg)) return { ok: false, error: 'المباراة أو الفريق غير صحيح.' };
   if (error?.code === 'PGRST202' || /could not find the function|schema cache/i.test(msg)) {
     return { ok: false, error: 'ميزة التشكيلات لم تُفعَّل بعد: شغّل ملف lineups.sql في Supabase (SQL Editor) مرة واحدة.' };
@@ -83,7 +85,8 @@ export class SupabaseRepository implements TournamentRepository {
         .order('created_at', { ascending: true }),
       this.db.from('news').select('id,title,summary,tag,image_url,published_at').order('published_at', { ascending: false }),
       // التشكيلات: إن لم يُشغَّل lineups.sql بعد فالجدول غير موجود، ولا نريد أن يتعطل الموقع بسببه (نتجاهل الخطأ)
-      this.db.from('match_lineups').select('match_id,team_id,player_ids,updated_at'),
+      // positions عمود إضافي (lineup-positions.sql)؛ إن لم يُشغَّل بعد نعيد المحاولة بدونه في load()
+      this.db.from('match_lineups').select('match_id,team_id,player_ids,updated_at,positions'),
       // البطاقات: نفس القاعدة (لو لم يُشغَّل cards.sql لا يتعطل الموقع)
       this.db.from('match_cards').select('id,match_id,team_id,player_id,kind,minute').order('created_at', { ascending: true }),
       this.db.from('match_subs').select('id,match_id,team_id,out_id,in_id,minute').order('created_at', { ascending: true }),
@@ -100,6 +103,10 @@ export class SupabaseRepository implements TournamentRepository {
     }
     const err = ms.error ?? ev.error ?? nw.error;
     if (err) throw new Error(err.message);
+    // عمود positions غير موجود بعد (لم يُشغَّل lineup-positions.sql): نقرأ التشكيلات بدونه كي لا تختفي
+    if (ln.error && /positions/i.test(ln.error.message ?? '')) {
+      ln = await this.db.from('match_lineups').select('match_id,team_id,player_ids,updated_at');
+    }
 
     const rows = new Map((ms.data as MatchRow[]).map((r) => [r.match_id, r]));
     const matches = fresh.matches.map((m) => {
@@ -131,7 +138,13 @@ export class SupabaseRepository implements TournamentRepository {
       ? []
       : (ln.data as LineupRow[])
           .filter((l) => matchIds.has(l.match_id) && l.player_ids.every((id) => playerIds.has(id)))
-          .map((l) => ({ matchId: l.match_id, teamId: l.team_id, playerIds: l.player_ids, updatedAt: l.updated_at ?? undefined }));
+          .map((l): Lineup => ({
+            matchId: l.match_id,
+            teamId: l.team_id,
+            playerIds: l.player_ids,
+            updatedAt: l.updated_at ?? undefined,
+            ...(l.positions && Object.keys(l.positions).length > 0 ? { positions: l.positions } : {}),
+          }));
     const cards: MatchCard[] = cd.error || !cd.data
       ? []
       : (cd.data as CardRow[])
@@ -502,8 +515,16 @@ export class SupabaseRepository implements TournamentRepository {
     return this.done('أُعيدت المباراة إلى حالتها الأولى.');
   }
 
-  async saveLineup(matchId: string, teamId: string, playerIds: string[]): Promise<Result<TournamentState>> {
-    const { error } = await this.db.rpc('save_lineup', { p_match: matchId, p_team: teamId, p_players: playerIds });
+  async saveLineup(matchId: string, teamId: string, playerIds: string[], positions?: Record<string, Position>): Promise<Result<TournamentState>> {
+    const cleaned = normalizePositions(this.seedFn().players.filter((p) => p.teamId === teamId), playerIds, positions);
+    const hasPositions = Object.keys(cleaned).length > 0;
+    // بدون مراكز مخصصة نستدعي الدالة بصيغتها القديمة، فتعمل حتى قبل تشغيل lineup-positions.sql
+    const { error } = await this.db.rpc('save_lineup', hasPositions
+      ? { p_match: matchId, p_team: teamId, p_players: playerIds, p_positions: cleaned }
+      : { p_match: matchId, p_team: teamId, p_players: playerIds });
+    if (error && hasPositions && (error.code === 'PGRST202' || /could not find the function|schema cache/i.test(error.message ?? ''))) {
+      return { ok: false, error: 'اختيار مركز مختلف لهذه المباراة لم يُفعَّل بعد: شغّل ملف lineup-positions.sql في Supabase (SQL Editor) مرة واحدة.' };
+    }
     if (error) return lineupError(error);
     return this.done('تم حفظ التشكيلة.');
   }
