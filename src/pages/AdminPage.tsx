@@ -146,7 +146,7 @@ function Panel({ role, who, onLogout }: { role: Role; who: string; onLogout: () 
       {tabs.length === 0 ? (
         <EmptyState title="لا توجد أقسام متاحة لدورك بعد" hint="اطلب من الأدمن مراجعة دورك." />
       ) : tab === 'news' ? (
-        <NewsAdmin />
+        <NewsAdmin isAdmin={role === 'admin'} />
       ) : tab === 'photos' ? (
         <PhotosAdmin canDelete={role === 'admin' || role === 'editor'} />
       ) : tab === 'messages' ? (

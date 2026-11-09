@@ -257,6 +257,10 @@ export class LocalStorageRepository implements TournamentRepository {
     return { ok: false, error: 'حذف الأخبار من اللوحة يتطلب ربط Supabase.' };
   }
 
+  async setNewsLocked(_id: string, _locked: boolean): Promise<Result<TournamentState>> {
+    return { ok: false, error: 'تثبيت الأخبار يتطلب ربط Supabase.' };
+  }
+
   // المعرض يحتاج تخزين ملفات حقيقياً، لذلك لا يعمل إلا مع Supabase
   async loadPhotos(_query?: PhotoQuery): Promise<PhotoPage> {
     return { photos: [], hasMore: false };

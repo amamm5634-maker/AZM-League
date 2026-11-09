@@ -17,7 +17,7 @@ export const TOURNAMENT = {
   venue: 'يُحدَّد لاحقاً في أحد الميادين القريبة من الجامعة',
   venueShort: 'يُحدَّد لاحقاً',
   organizer: 'كلية الهندسة — جامعة بحري',
-  technicalDevelopment: 'طلاب كلية الحاسوب — جامعة بحري',
+  technicalDevelopment: 'محمد إمام — دفعة 23/24 · طالب علوم حاسوب',
   contact: {
     email: 'سيُعلن قريباً',
     phone: '002499995774873',
@@ -94,3 +94,12 @@ export const ROUND_LABELS: Record<number, string> = {
 
 /** رمز الدخول التجريبي للوحة الإدارة — للعرض فقط وليس حماية حقيقية */
 export const ADMIN_DEMO_CODE = '1234';
+
+/** مطوّر الموقع: بطاقة «اطلب موقعك» في صفحة عن الدوري. الرقم بالصيغة الدولية بلا + (للرابط wa.me) */
+export const DEVELOPER = {
+  name: 'محمد إمام',
+  role: 'طالب علوم حاسوب · دفعة 23/24',
+  whatsapp: '249115928313',
+  whatsappLocal: '0115928313',
+  message: 'السلام عليكم، شفت موقع دوري عزم وعايز موقع لـ ',
+};

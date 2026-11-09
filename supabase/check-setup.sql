@@ -21,6 +21,11 @@ with chk(ord, item, ok, fix) as (
        exists (select 1 from information_schema.columns where table_schema='public' and table_name='gallery_photos' and column_name='round_pick'), 'round-photo.sql'),
   (22, 'عمود مراكز التشكيلة match_lineups.positions',
        exists (select 1 from information_schema.columns where table_schema='public' and table_name='match_lineups' and column_name='positions'), 'lineup-positions.sql'),
+  (23, 'عمود تثبيت الأخبار news.locked',
+       exists (select 1 from information_schema.columns where table_schema='public' and table_name='news' and column_name='locked'), 'news-lock.sql'),
+  (24, 'سياسات حماية الأخبار المثبّتة (news insert/update/delete)',
+       (select count(*) from pg_policies where schemaname='public' and tablename='news' and policyname in ('news insert','news update','news delete')) = 3
+       and not exists (select 1 from pg_policies where schemaname='public' and tablename='news' and policyname='editors write news'), 'news-lock.sql'),
   -- دوال
   (30, 'دالة has_role',            exists (select 1 from pg_proc where pronamespace='public'::regnamespace and proname='has_role'), 'schema.sql'),
   (31, 'دالة gallery_usage',       exists (select 1 from pg_proc where pronamespace='public'::regnamespace and proname='gallery_usage'), 'schema.sql'),

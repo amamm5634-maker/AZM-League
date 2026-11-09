@@ -49,6 +49,7 @@ export interface Actions {
   saveLineup(matchId: string, teamId: string, playerIds: string[], positions?: Record<string, Position>, formation?: string): Applied;
   addNews(input: NewsInput): Applied;
   deleteNews(id: string): Applied;
+  setNewsLocked(id: string, locked: boolean): Applied;
 }
 
 interface TournamentContextValue {
@@ -152,6 +153,7 @@ export function TournamentProvider({ children }: { children: ReactNode }) {
       saveLineup: (matchId, teamId, playerIds, positions, formation) => apply(repository.saveLineup(matchId, teamId, playerIds, positions, formation)),
       addNews: (input) => apply(repository.addNews(input)),
       deleteNews: (id) => apply(repository.deleteNews(id)),
+      setNewsLocked: (id, locked) => apply(repository.setNewsLocked(id, locked)),
     }),
     [apply],
   );

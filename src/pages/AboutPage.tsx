@@ -1,4 +1,4 @@
-import { TOURNAMENT, STATUS_LABELS } from '../data/config';
+import { TOURNAMENT, STATUS_LABELS, DEVELOPER } from '../data/config';
 import { formatArabicDate } from '../lib/stats';
 import { Icon } from '../components/Icon';
 import { PageHead } from '../components/StateViews';
@@ -54,6 +54,19 @@ export function AboutPage() {
           <li><Icon name="phone" /><span>الهاتف: <a href={`tel:${contact.phone}`} dir="ltr">{contact.phone}</a></span></li>
           <li><Icon name="pin" /><span>{contact.address}</span></li>
         </ul>
+      </section>
+
+      <section className="card section dev-ad" aria-labelledby="about-dev">
+        <h2 id="about-dev" style={{ fontSize: '1.1rem', color: 'var(--head)', marginBottom: 6 }}>عايز موقع زي ده؟</h2>
+        <p>موقع دوري عزم من تطوير <strong>{DEVELOPER.name}</strong> — {DEVELOPER.role}. نتائج مباشرة وبطاقات لاعبين ومعرض صور ولوحة إدارة، ونبني ليك موقع لفريقك أو فعاليتك أو مشروعك.</p>
+        <a
+          className="btn btn-primary"
+          href={`https://wa.me/${DEVELOPER.whatsapp}?text=${encodeURIComponent(DEVELOPER.message)}`}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          تواصل معي على واتساب <span dir="ltr">{DEVELOPER.whatsappLocal}</span>
+        </a>
       </section>
     </>
   );

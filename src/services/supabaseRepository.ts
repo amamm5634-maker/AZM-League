@@ -39,7 +39,7 @@ interface CardRow { id: string; match_id: string; team_id: string; player_id: st
 interface SubRow { id: string; match_id: string; team_id: string; out_id: string; in_id: string; minute: number | null }
 interface LineupRow { match_id: string; team_id: string; player_ids: string[]; updated_at: string | null; positions?: Record<string, Position> | null; formation?: string | null }
 interface MessageRow { id: string; match_id: string; author: string; body: string; status: MatchMessage['status']; created_at: string }
-interface NewsRow { id: string; title: string; summary: string; tag: string; image_url: string | null; published_at: string }
+interface NewsRow { id: string; title: string; summary: string; tag: string; image_url: string | null; published_at: string; locked?: boolean | null }
 
 /** رسائل عربية لأخطاء حفظ التشكيلة القادمة من دالة save_lineup */
 export function lineupError(error: DbError): { ok: false; error: string } {
@@ -84,7 +84,7 @@ export class SupabaseRepository implements TournamentRepository {
         .from('goal_events')
         .select('id,match_id,team_id,scorer_id,assist_id,minute')
         .order('created_at', { ascending: true }),
-      this.db.from('news').select('id,title,summary,tag,image_url,published_at').order('published_at', { ascending: false }),
+      this.db.from('news').select('id,title,summary,tag,image_url,published_at,locked').order('published_at', { ascending: false }),
       // التشكيلات: إن لم يُشغَّل lineups.sql بعد فالجدول غير موجود، ولا نريد أن يتعطل الموقع بسببه (نتجاهل الخطأ)
       // positions عمود إضافي (lineup-positions.sql)؛ إن لم يُشغَّل بعد نعيد المحاولة بدونه في load()
       this.db.from('match_lineups').select('match_id,team_id,player_ids,updated_at,positions,formation'),
@@ -104,6 +104,10 @@ export class SupabaseRepository implements TournamentRepository {
     }
     const err = ms.error ?? ev.error ?? nw.error;
     if (err) throw new Error(err.message);
+    // عمود locked غير موجود بعد (لم يُشغَّل news-lock.sql): نقرأ الأخبار بدونه كي لا تختفي
+    if (nw.error && /locked/i.test(nw.error.message ?? '')) {
+      nw = await this.db.from('news').select('id,title,summary,tag,image_url,published_at').order('published_at', { ascending: false });
+    }
     // عمود positions غير موجود بعد (لم يُشغَّل lineup-positions.sql): نقرأ التشكيلات بدونه كي لا تختفي
     if (ln.error && /positions|formation/i.test(ln.error.message ?? '')) {
       ln = await this.db.from('match_lineups').select('match_id,team_id,player_ids,updated_at');
@@ -133,6 +137,7 @@ export class SupabaseRepository implements TournamentRepository {
       tag: n.tag,
       date: n.published_at,
       image: n.image_url ?? undefined,
+      ...(n.locked ? { locked: true } : {}),
     }));
     const playerIds = new Set(fresh.players.map((x) => x.id));
     const lineups: Lineup[] = ln.error || !ln.data
@@ -326,9 +331,22 @@ export class SupabaseRepository implements TournamentRepository {
     if (!id.startsWith('db:')) {
       return { ok: false, error: 'هذا الخبر ثابت داخل ملفات الموقع، ويُحذف من seed.ts.' };
     }
-    const del = await this.db.from('news').delete().eq('id', id.slice(3));
+    const del = await this.db.from('news').delete().eq('id', id.slice(3)).select('id');
     if (del.error) return fail(del.error, 'تعذّر حذف الخبر');
+    // السياسة ترفض حذف الخبر المثبّت دون خطأ (صفر صفوف)
+    if (!del.data || del.data.length === 0) return { ok: false, error: 'لا يمكن حذف هذا الخبر: هو مثبّت (الأدمن فقط يلغي التثبيت)، أو غير موجود.' };
     return this.done('تم حذف الخبر.');
+  }
+
+  async setNewsLocked(id: string, locked: boolean): Promise<Result<TournamentState>> {
+    if (!id.startsWith('db:')) return { ok: false, error: 'هذا الخبر ثابت داخل ملفات الموقع أصلاً.' };
+    const up = await this.db.from('news').update({ locked }).eq('id', id.slice(3)).select('id');
+    if (up.error) {
+      if (/locked/i.test(up.error.message ?? '')) return { ok: false, error: 'التثبيت لم يُفعَّل بعد: شغّل ملف news-lock.sql في Supabase (SQL Editor) مرة واحدة.' };
+      return fail(up.error, 'تعذّر تغيير التثبيت');
+    }
+    if (!up.data || up.data.length === 0) return { ok: false, error: 'لا تملك صلاحية تثبيت الأخبار (للأدمن فقط).' };
+    return this.done(locked ? 'تم تثبيت الخبر: لا يعدّله ولا يحذفه إلا الأدمن.' : 'أُلغي تثبيت الخبر.');
   }
 
   /* ---------------- معرض الصور ---------------- */

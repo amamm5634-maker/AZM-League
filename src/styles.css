@@ -729,3 +729,7 @@ a.sponsor:hover { background: rgba(255, 255, 255, 0.12); transform: translateY(-
 
 .le-fm { display: flex; align-items: center; gap: 8px; margin: 6px 0 10px; font-weight: 700; }
 .le-fm select { flex: 1; max-width: 320px; min-height: 40px; border-radius: 8px; border: 1px solid var(--line); background: var(--paper); color: inherit; font: inherit; padding: 2px 8px; }
+
+.dev-ad { border-color: color-mix(in srgb, var(--lime) 45%, var(--line)); }
+.dev-ad p { margin: 0 0 12px; line-height: 1.8; }
+.dev-ad .btn { display: inline-flex; gap: 8px; align-items: center; }

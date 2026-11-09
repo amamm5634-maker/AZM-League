@@ -9,7 +9,7 @@ const TAGS = ['إعلان', 'القرعة', 'نتائج', 'تقرير', 'خبر'
 type Notice = { type: 'ok' | 'error'; text: string };
 
 /** إدارة الأخبار: نشر خبر (مع صورة اختيارية) وحذفه */
-export function NewsAdmin() {
+export function NewsAdmin({ isAdmin = false }: { isAdmin?: boolean }) {
   const state = useData();
   const { actions } = useTournament();
   const [title, setTitle] = useState('');
@@ -37,6 +37,16 @@ export function NewsAdmin() {
       } else {
         setNotice({ type: 'error', text: result.error });
       }
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const toggleLock = async (id: string, locked: boolean) => {
+    setBusy(true);
+    try {
+      const result = await actions.setNewsLocked(id, locked);
+      setNotice(result.ok ? { type: 'ok', text: result.message } : { type: 'error', text: result.error });
     } finally {
       setBusy(false);
     }
@@ -116,9 +126,15 @@ export function NewsAdmin() {
                   <strong>{n.title}</strong>
                 </div>
                 <span className="sub">{formatArabicDate(n.date)}{n.id.startsWith('db:') ? '' : ' · ثابت في الملفات'}</span>
+                {n.locked && <span className="chip chip-soft">📌 مثبّت</span>}
                 {n.id.startsWith('db:') && (
                   <div className="actions">
-                    <button type="button" className="btn btn-danger" onClick={() => setDeleteId(n.id)} disabled={busy}>حذف</button>
+                    {isAdmin && (
+                      <button type="button" className="btn" onClick={() => void toggleLock(n.id, !n.locked)} disabled={busy}>
+                        {n.locked ? 'إلغاء التثبيت' : '📌 تثبيت'}
+                      </button>
+                    )}
+                    {!n.locked && <button type="button" className="btn btn-danger" onClick={() => setDeleteId(n.id)} disabled={busy}>حذف</button>}
                   </div>
                 )}
               </li>

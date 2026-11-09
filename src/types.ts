@@ -104,6 +104,8 @@ export interface NewsItem {
   date: string;
   tag: string;
   image?: string; // مسار صورة اختيارية داخل public/
+  /** مثبّت (محمي): لا يعدّله ولا يحذفه إلا الأدمن */
+  locked?: boolean;
 }
 
 export interface TournamentState {

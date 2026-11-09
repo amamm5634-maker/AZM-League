@@ -63,6 +63,8 @@ export interface TournamentRepository {
   deleteSub(subId: string): Promise<Result<TournamentState>>;
   addNews(input: NewsInput): Promise<Result<TournamentState>>;
   deleteNews(id: string): Promise<Result<TournamentState>>;
+  /** تثبيت الخبر أو إلغاء تثبيته (للأدمن فقط) */
+  setNewsLocked(id: string, locked: boolean): Promise<Result<TournamentState>>;
 
   // ---- معرض الصور: منفصل عن حالة الدوري حتى لا يُحمَّل مع كل تحديث دوري للنتائج ----
   loadPhotos(query?: PhotoQuery): Promise<PhotoPage>;
