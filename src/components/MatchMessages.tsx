@@ -1,16 +1,15 @@
 import { useCallback, useEffect, useState, type CSSProperties, type FormEvent } from 'react';
 import { repository } from '../services';
 import { assetUrl } from '../lib/asset';
+import { isNight } from '../lib/daytime';
 import { deviceId } from '../lib/device';
 import { formatArabicDate } from '../lib/stats';
 import type { MatchMessage } from '../types';
 
 const MAX = 140;
 
-/** من 6 مساءً إلى 6 صباحاً نعرض المدرجات الليلية، وفي النهار مدرجات الغروب */
-function standsPhoto(): string {
-  const h = new Date().getHours();
-  const night = h >= 18 || h < 6;
+/** من 6 مساءً إلى 6 صباحاً (بتوقيت السودان لا بساعة جهاز الزائر) نعرض المدرجات الليلية، وفي النهار مدرجات الغروب */
+function standsPhoto(night: boolean): string {
   return `url("${assetUrl(`images/${night ? 'stands-night' : 'stands-sunset'}.jpg`)}")`;
 }
 
@@ -49,8 +48,10 @@ export function MatchMessages({ matchId }: { matchId: string }) {
     }
   };
 
+  const night = isNight();
+
   return (
-    <section className="section stands" aria-labelledby="stands-title" style={{ '--stands-photo': standsPhoto() } as CSSProperties}>
+    <section className={`section stands ${night ? 'night' : 'day'}`} aria-labelledby="stands-title" style={{ '--stands-photo': standsPhoto(night) } as CSSProperties}>
       <div className="section-title"><h2 id="stands-title">مدرجات المباراة</h2></div>
       <form className="card stands-form" onSubmit={submit} noValidate>
         <div className="field">

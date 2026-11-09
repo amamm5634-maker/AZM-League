@@ -12,7 +12,7 @@
     "check:demo": "tsx scripts/check-demo.ts",
     "check:draw": "tsx scripts/check-draw.ts",
     "check:flow": "tsx scripts/check-admin-flow.ts",
-    "check": "npm run typecheck && npm run check:data && npm run check:demo && npm run check:draw && npm run check:flow && npm run check:bracket && npm run check:scenarios && npm run check:gallery && npm run check:staff && npm run check:tiebreak && npm run check:predictions && npm run check:lineup && npm run check:cards && npm run check:subs && npm run check:awards",
+    "check": "npm run typecheck && npm run check:data && npm run check:demo && npm run check:draw && npm run check:flow && npm run check:bracket && npm run check:scenarios && npm run check:gallery && npm run check:staff && npm run check:tiebreak && npm run check:predictions && npm run check:lineup && npm run check:cards && npm run check:subs && npm run check:awards && npm run check:daytime",
     "check:bracket": "tsx scripts/check-bracket.ts",
     "check:scenarios": "tsx scripts/check-scenarios.ts",
     "check:gallery": "tsx scripts/check-gallery.ts",
@@ -22,7 +22,8 @@
     "check:lineup": "tsx scripts/check-lineup.ts",
     "check:cards": "tsx scripts/check-cards.ts",
     "check:subs": "tsx scripts/check-subs.ts",
-    "check:awards": "tsx scripts/check-awards.ts"
+    "check:awards": "tsx scripts/check-awards.ts",
+    "check:daytime": "tsx scripts/check-daytime.ts"
   },
   "dependencies": {
     "react": "^18.3.1",
