@@ -20,7 +20,7 @@ import { Icon, type IconName } from '../components/Icon';
 import { MatchCard } from '../components/MatchCard';
 import { PhotoGrid } from '../components/PhotoGrid';
 import { PlayerCard } from '../components/PlayerCard';
-import { computeAwards } from '../lib/awards';
+import { computeAwards, keeperRecords } from '../lib/awards';
 import { EmptyState } from '../components/StateViews';
 import { TeamBadge } from '../components/TeamBadge';
 import { RollingBall } from '../components/RollingBall';
@@ -73,7 +73,19 @@ export function HomePage() {
         .sort((a, b) => b.pts - a.pts || b.gd - a.gd || b.gf - a.gf)
         .slice(0, 5)
     : [];
-  const stars = sortedScorers(computePlayerStats(state)).slice(0, 4);
+  const scorerStats = sortedScorers(computePlayerStats(state)).slice(0, 4);
+  const keepers = keeperRecords(state);
+  // نجوم الدوري: الهدافون أولاً، ثم حامل بطاقة أفضل حارس، ثم أفضل لاعب (بلا تكرار)
+  const starCards: { playerId: string; goals: number; assists: number; extra?: { value: number; label: string }[] }[] = scorerStats.map((s) => ({ playerId: s.playerId, goals: s.goals, assists: s.assists }));
+  for (const kind of ['keeper', 'mvp'] as const) {
+    for (const [id, list] of Object.entries(awards)) {
+      if (!list.includes(kind) || starCards.some((c) => c.playerId === id)) continue;
+      const st = scorerStats.find((x) => x.playerId === id);
+      const k = keepers.get(id);
+      starCards.push({ playerId: id, goals: st?.goals ?? 0, assists: st?.assists ?? 0, extra: kind === 'keeper' && k ? [{ value: k.cleanSheets, label: 'شباك نظيفة' }, { value: k.conceded, label: 'دخلت مرماه' }] : undefined });
+    }
+  }
+  const stars = starCards;
 
   return (
     <>
@@ -125,6 +137,21 @@ export function HomePage() {
           />
         )}
       </section>
+
+      {stars.length > 0 && (
+        <section className="section" aria-labelledby="stars-title">
+          <div className="section-title">
+            <h2 id="stars-title">نجوم الدوري</h2>
+            <a className="link-more" href="#/scorers">الهدافون</a>
+          </div>
+          <div className="players-grid">
+            {stars.map((s) => {
+              const p = playerById(state, s.playerId);
+              return p ? <PlayerCard key={p.id} player={p} team={teamById(state, p.teamId)} goals={s.goals} assists={s.assists} extra={s.extra} awards={awards[p.id]} /> : null;
+            })}
+          </div>
+        </section>
+      )}
 
       <section className="section" aria-labelledby="top5-title">
         <div className="section-title">
@@ -230,21 +257,6 @@ export function HomePage() {
           ))}
         </div>
       </section>
-
-      {stars.length > 0 && (
-        <section className="section" aria-labelledby="stars-title">
-          <div className="section-title">
-            <h2 id="stars-title">أبرز اللاعبين</h2>
-            <a className="link-more" href="#/scorers">الهدافون</a>
-          </div>
-          <div className="players-grid">
-            {stars.map((s) => {
-              const p = playerById(state, s.playerId);
-              return p ? <PlayerCard key={p.id} player={p} team={teamById(state, p.teamId)} goals={s.goals} assists={s.assists} awards={awards[p.id]} /> : null;
-            })}
-          </div>
-        </section>
-      )}
 
       <section className="section" aria-labelledby="colleges-title">
         <div className="section-title">

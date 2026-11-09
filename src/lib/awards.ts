@@ -20,6 +20,26 @@ function leaders(values: Map<string, number>, min: number): string[] {
   return [...values.entries()].filter(([, v]) => v === best).map(([id]) => id);
 }
 
+/** سجل الحراس: شباك نظيفة وأهداف دخلت مرماهم (حراس التشكيلة الأساسية في المباريات المنتهية) */
+export function keeperRecords(state: TournamentState): Map<string, { cleanSheets: number; conceded: number }> {
+  const out = new Map<string, { cleanSheets: number; conceded: number }>();
+  for (const m of state.matches) {
+    if (m.status !== 'completed') continue;
+    for (const side of ['home', 'away'] as const) {
+      const teamId = side === 'home' ? m.homeId : m.awayId;
+      const lineup = lineupFor(state, m.id, teamId);
+      const keeper = lineup?.playerIds.map((id) => state.players.find((p) => p.id === id)).find((p) => p && (lineup?.positions?.[p.id] ?? p.position) === 'حارس');
+      if (!keeper) continue;
+      const against = side === 'home' ? m.awayScore : m.homeScore;
+      const r = out.get(keeper.id) ?? { cleanSheets: 0, conceded: 0 };
+      r.conceded += against;
+      if (against === 0) r.cleanSheets += 1;
+      out.set(keeper.id, r);
+    }
+  }
+  return out;
+}
+
 export function computeAwards(state: TournamentState): Record<string, AwardKind[]> {
   const out: Record<string, AwardKind[]> = {};
   const give = (ids: string[], kind: AwardKind) => {
@@ -36,21 +56,10 @@ export function computeAwards(state: TournamentState): Record<string, AwardKind[
   for (const m of state.matches) if (m.motmId) motm.set(m.motmId, (motm.get(m.motmId) ?? 0) + 1);
   give(leaders(motm, 0), 'mvp');
 
-  // أفضل حارس: أكثر شباك نظيفة، وعند التعادل أقل أهداف دخلت مرماه (حراس التشكيلة الأساسية في المباريات المنتهية)
-  const cs = new Map<string, number>();
-  const conceded = new Map<string, number>();
-  for (const m of state.matches) {
-    if (m.status !== 'completed') continue;
-    for (const side of ['home', 'away'] as const) {
-      const teamId = side === 'home' ? m.homeId : m.awayId;
-      const lineup = lineupFor(state, m.id, teamId);
-      const keeper = lineup?.playerIds.map((id) => state.players.find((p) => p.id === id)).find((p) => p && (lineup?.positions?.[p.id] ?? p.position) === 'حارس');
-      if (!keeper) continue;
-      const against = side === 'home' ? m.awayScore : m.homeScore;
-      conceded.set(keeper.id, (conceded.get(keeper.id) ?? 0) + against);
-      cs.set(keeper.id, (cs.get(keeper.id) ?? 0) + (against === 0 ? 1 : 0));
-    }
-  }
+  // أفضل حارس: أكثر شباك نظيفة، وعند التعادل أقل أهداف دخلت مرماه
+  const rec = keeperRecords(state);
+  const cs = new Map([...rec].map(([id, r]) => [id, r.cleanSheets]));
+  const conceded = new Map([...rec].map(([id, r]) => [id, r.conceded]));
   const topCs = leaders(cs, 0);
   if (topCs.length > 0) {
     const least = Math.min(...topCs.map((id) => conceded.get(id) ?? 0));

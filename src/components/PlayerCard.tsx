@@ -21,10 +21,12 @@ interface Props {
   link?: boolean;
   /** البطاقات الخاصة التي يحملها اللاعب الآن (هدّاف/أفضل لاعب/أفضل حارس) */
   awards?: AwardKind[];
+  /** سطر إضافي تحت الاسم بدل الأهداف والصناعات (مثل: شباك نظيفة للحارس) */
+  extra?: { value: number; label: string }[];
 }
 
 /** بطاقة لاعب بأسلوب بطاقات كرة القدم الأوروبية: الرقم والمركز والشارة، ثم الصورة، ثم الاسم والإحصاءات */
-export function PlayerCard({ player, team, goals = 0, assists = 0, link = true, awards = [] }: Props) {
+export function PlayerCard({ player, team, goals = 0, assists = 0, link = true, awards = [], extra }: Props) {
   const [broken, setBroken] = useState(false);
   const photo = photoFor(player);
   const showPhoto = !!photo && !broken;
@@ -64,8 +66,9 @@ export function PlayerCard({ player, team, goals = 0, assists = 0, link = true, 
       <div className="pinfo">
         <div className="pname">{player.name}</div>
         <div className="pstats">
-          <span><b>{goals}</b>هدف</span>
-          <span><b>{assists}</b>صناعة</span>
+          {extra
+            ? extra.map((x) => <span key={x.label}><b>{x.value}</b>{x.label}</span>)
+            : <><span><b>{goals}</b>هدف</span><span><b>{assists}</b>صناعة</span></>}
         </div>
       </div>
       {link && <a className="pc-link" href={`#/player/${player.id}`} aria-label={`ملف اللاعب ${player.name}`} />}
