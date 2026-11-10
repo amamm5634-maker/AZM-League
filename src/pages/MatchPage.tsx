@@ -15,6 +15,7 @@ import { MatchPrediction } from '../components/MatchPrediction';
 import { ShareButton } from '../components/ShareButton';
 import { ShareImageButton } from '../components/ShareImageButton';
 import { TeamBadge } from '../components/TeamBadge';
+import { MatchTimeline, useMatchTimeline } from '../components/MatchTimeline';
 
 /** صفحة المباراة: الفريقان والنتيجة والحالة والأهداف ورجل المباراة (لا نعرض إحصاءات غير موثوقة) */
 export function MatchPage({ matchId }: { matchId: string }) {
@@ -34,16 +35,7 @@ export function MatchPage({ matchId }: { matchId: string }) {
   const mark = (id: string): PlayerMark => (marks[id] ??= {});
   for (const s of subsForMatch(state.subs, match.id)) { mark(s.outId).out = true; mark(s.inId).in = true; }
   for (const c of cards) { if (c.kind === 'red') mark(c.playerId).red = true; else mark(c.playerId).yellow = true; }
-  // خط زمني واحد: الأهداف والبطاقات مرتبة بالدقيقة (من بلا دقيقة في الآخر)
-  type Row = { key: string; minute?: number; teamId: string; kind: 'goal' | 'yellow' | 'red' | 'sub'; playerId: string; assistId?: string; inId?: string };
-  const timeline: Row[] = [
-    ...goals.map((e): Row => ({ key: e.id, minute: e.minute, teamId: e.teamId, kind: 'goal', playerId: e.scorerId, assistId: e.assistId })),
-    ...subsForMatch(state.subs, match.id).map((s): Row => ({ key: s.id, minute: s.minute, teamId: s.teamId, kind: 'sub', playerId: s.outId, inId: s.inId })),
-    ...cards.map((c): Row => ({ key: c.id, minute: c.minute, teamId: c.teamId, kind: c.kind, playerId: c.playerId })),
-  ]
-    .map((r, i) => ({ r, i }))
-    .sort((a, b) => (a.r.minute ?? 999) - (b.r.minute ?? 999) || a.i - b.i)
-    .map((x) => x.r);
+  const timeline = useMatchTimeline(match.id);
   const motm = match.motmId ? playerById(state, match.motmId) : undefined;
   const motmTeam = motm ? teamById(state, motm.teamId) : undefined;
   const shareText = hasScore
@@ -89,40 +81,7 @@ export function MatchPage({ matchId }: { matchId: string }) {
           {timeline.length === 0 ? (
             <p className="mh-empty">{hasScore ? 'لم تُسجَّل تفاصيل الأحداث بعد.' : 'لم تبدأ المباراة بعد، وتظهر الأهداف والبطاقات هنا فور تسجيلها.'}</p>
           ) : (
-            <ol className="goal-tl">
-              {timeline.map((e) => {
-                const player = playerById(state, e.playerId);
-                const assister = e.assistId ? playerById(state, e.assistId) : undefined;
-                const isHome = e.teamId === match.homeId;
-                const icon = e.kind === 'goal' ? '⚽' : e.kind === 'sub' ? '🔁' : CARD_EMOJI[e.kind];
-                const label = e.kind === 'goal' ? 'هدف' : e.kind === 'sub' ? 'تبديل' : CARD_LABELS[e.kind];
-                const content = (
-                  <div className={`ev ${isHome ? 'ev-home' : 'ev-away'} ev-${e.kind}`}>
-                    <span className="ev-ico" role="img" aria-label={label}>{icon}</span>
-                    <span className="ev-txt">
-                      {e.kind === 'sub' ? (
-                        <>
-                          <a href={`#/player/${e.inId}`}><strong>{playerById(state, e.inId ?? '')?.name}</strong></a>
-                          <small> بدل {player?.name}</small>
-                        </>
-                      ) : (
-                        <>
-                          <a href={`#/player/${e.playerId}`}><strong>{player?.name}</strong></a>
-                          {assister && <small> صناعة: {assister.name}</small>}
-                        </>
-                      )}
-                    </span>
-                  </div>
-                );
-                return (
-                  <li key={e.key}>
-                    <div className="ev-side">{isHome && content}</div>
-                    <span className="min" dir="ltr">{e.minute != null ? `${e.minute}'` : '•'}</span>
-                    <div className="ev-side">{!isHome && content}</div>
-                  </li>
-                );
-              })}
-            </ol>
+            <MatchTimeline match={match} rows={timeline} />
           )}
           </div>
         )}

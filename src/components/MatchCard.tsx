@@ -1,18 +1,19 @@
 import type { CSSProperties } from 'react';
 import type { Match } from '../types';
 import { GROUP_LABELS, MATCH_STATUS_LABELS, ROUND_LABELS } from '../data/config';
-import { eventsForMatch, formatArabicDate, playerById, teamById } from '../lib/stats';
+import { formatArabicDate, playerById, teamById } from '../lib/stats';
 import { useData } from '../store';
 import { Icon } from './Icon';
 import { ShareButton } from './ShareButton';
 import { ShareImageButton } from './ShareImageButton';
 import { TeamBadge } from './TeamBadge';
+import { MatchTimeline, useMatchTimeline } from './MatchTimeline';
 
 export function MatchCard({ match, showGoals = true }: { match: Match; showGoals?: boolean }) {
   const state = useData();
   const home = teamById(state, match.homeId);
   const away = teamById(state, match.awayId);
-  const goals = eventsForMatch(state, match.id);
+  const timeline = useMatchTimeline(match.id);
   const hasScore = match.status !== 'scheduled';
   const motm = match.motmId ? playerById(state, match.motmId) : undefined;
   const shareText = hasScore
@@ -70,25 +71,10 @@ export function MatchCard({ match, showGoals = true }: { match: Match; showGoals
         {hasScore && <ShareImageButton match={match} />}
       </div>
 
-      {showGoals && goals.length > 0 && (
-        <details className="goals">
-          <summary>تفاصيل الأهداف ({goals.length})</summary>
-          <ul>
-            {goals.map((e) => {
-              const scorer = playerById(state, e.scorerId);
-              const assister = e.assistId ? playerById(state, e.assistId) : undefined;
-              const team = teamById(state, e.teamId);
-              return (
-                <li key={e.id}>
-                  <span className="min" dir="ltr">{e.minute != null ? `${e.minute}'` : '—'}</span>
-                  <span>
-                    {scorer?.name} <small>({team?.short})</small>
-                  </span>
-                  {assister && <span className="assist">صناعة: {assister.name}</span>}
-                </li>
-              );
-            })}
-          </ul>
+      {showGoals && timeline.length > 0 && (
+        <details className="goals" open={match.status === 'live'}>
+          <summary>أحداث المباراة ({timeline.length})</summary>
+          <MatchTimeline match={match} rows={timeline} />
         </details>
       )}
     </article>
