@@ -749,3 +749,14 @@ a.sponsor:hover { background: rgba(255, 255, 255, 0.12); transform: translateY(-
 .mh-events { margin: 14px 12px 4px; padding-top: 12px; border-top: 1px dashed var(--line); text-align: start; }
 .mh-events-title { font-size: 1rem; color: var(--head); margin: 0 0 8px; }
 .mh-empty { color: var(--muted); font-size: 0.9rem; margin: 0; }
+
+/* خط زمني من جهتين: صاحب الأرض يمين، الضيف يسار، والدقيقة في الوسط */
+.mh-events .goal-tl { position: relative; gap: 0; }
+.mh-events .goal-tl::before { content: ''; position: absolute; top: 0; bottom: 0; left: 50%; width: 2px; transform: translateX(-50%); background: var(--line); }
+.mh-events .goal-tl li { display: grid; grid-template-columns: 1fr 46px 1fr; align-items: center; gap: 0; padding: 7px 0; background: none; border: 0; border-radius: 0; position: relative; }
+.mh-events .goal-tl .min { text-align: center; font-size: 0.85rem; background: var(--paper); border: 1px solid var(--line); border-radius: 999px; padding: 2px 0; min-width: 0; position: relative; z-index: 1; }
+.ev { display: flex; align-items: center; gap: 6px; }
+.ev-away { flex-direction: row-reverse; text-align: end; }
+.ev-ico { font-size: 1.15rem; flex: none; line-height: 1; }
+.ev-txt { display: flex; flex-direction: column; min-width: 0; font-size: 0.88rem; line-height: 1.3; }
+.ev-txt small { color: var(--muted); font-size: 0.74rem; }

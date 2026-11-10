@@ -93,26 +93,32 @@ export function MatchPage({ matchId }: { matchId: string }) {
               {timeline.map((e) => {
                 const player = playerById(state, e.playerId);
                 const assister = e.assistId ? playerById(state, e.assistId) : undefined;
-                const team = teamById(state, e.teamId);
-                return (
-                  <li key={e.key} className={e.teamId === match.homeId ? 'home' : 'away'}>
-                    <span className="min" dir="ltr">{e.minute != null ? `${e.minute}'` : '—'}</span>
-                    <TeamBadge team={team} size={26} />
-                    <span>
+                const isHome = e.teamId === match.homeId;
+                const icon = e.kind === 'goal' ? '⚽' : e.kind === 'sub' ? '🔁' : CARD_EMOJI[e.kind];
+                const label = e.kind === 'goal' ? 'هدف' : e.kind === 'sub' ? 'تبديل' : CARD_LABELS[e.kind];
+                const content = (
+                  <div className={`ev ${isHome ? 'ev-home' : 'ev-away'} ev-${e.kind}`}>
+                    <span className="ev-ico" role="img" aria-label={label}>{icon}</span>
+                    <span className="ev-txt">
                       {e.kind === 'sub' ? (
                         <>
-                          <span role="img" aria-label="تبديل">🔁 </span>
                           <a href={`#/player/${e.inId}`}><strong>{playerById(state, e.inId ?? '')?.name}</strong></a>
-                          <small style={{ color: 'var(--muted)' }}> بدل {player?.name}</small>
+                          <small> بدل {player?.name}</small>
                         </>
                       ) : (
                         <>
-                          {e.kind !== 'goal' && <span role="img" aria-label={CARD_LABELS[e.kind]}>{CARD_EMOJI[e.kind]} </span>}
                           <a href={`#/player/${e.playerId}`}><strong>{player?.name}</strong></a>
+                          {assister && <small> صناعة: {assister.name}</small>}
                         </>
                       )}
-                      {assister && <small style={{ color: 'var(--muted)' }}> · صناعة: {assister.name}</small>}
                     </span>
+                  </div>
+                );
+                return (
+                  <li key={e.key}>
+                    <div className="ev-side">{isHome && content}</div>
+                    <span className="min" dir="ltr">{e.minute != null ? `${e.minute}'` : '•'}</span>
+                    <div className="ev-side">{!isHome && content}</div>
                   </li>
                 );
               })}
