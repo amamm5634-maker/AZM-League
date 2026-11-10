@@ -2,6 +2,7 @@ import type { GroupId, Match, NewsItem, Player, Team, TournamentState } from '..
 import { GROUP_IDS, SCHEDULE, TOURNAMENT } from './config';
 import { DRAW } from './draw';
 import { ROSTERS } from './rosters';
+import { FIXTURES } from './fixtures';
 
 /**
  * ===== بيانات دوري عزم =====
@@ -48,8 +49,8 @@ export const NEWS: NewsItem[] = [
   },
   {
     id: 'n3',
-    title: 'صافرة البداية يوم 15 نوفمبر',
-    summary: 'تنطلق مباريات الدوري يوم 15/11، ويُحدَّد الميدان لاحقاً في أحد الملاعب القريبة من الجامعة.',
+    title: 'صافرة البداية يوم 17 نوفمبر',
+    summary: 'تنطلق مباريات الدوري يوم 17/11، ويُحدَّد الميدان لاحقاً في أحد الملاعب القريبة من الجامعة.',
     date: '2026-11-02',
     tag: 'إعلان',
     image: 'images/pitch-line.jpg',
@@ -95,12 +96,49 @@ function buildPlayers(teams: Team[]): Player[] {
   return players;
 }
 
+let fixturesActive = false;
+/** هل الجدول المعروض هو الجدول الرسمي من fixtures.ts؟ (يستخدمه فحص check-data) */
+export const usingOfficialFixtures = () => fixturesActive;
+
+function officialMatches(teams: Team[]): Match[] | null {
+  fixturesActive = false;
+  if (FIXTURES.length === 0) return null;
+  const perGroup: Record<string, number> = {};
+  const out: Match[] = [];
+  for (const [i, [date, time, homeNick, awayNick]] of FIXTURES.entries()) {
+    const home = teams.find((t) => t.nickname === homeNick);
+    const away = teams.find((t) => t.nickname === awayNick);
+    if (!home || !away || !home.group || home.group !== away.group) return null;
+    const k = (perGroup[home.group] = (perGroup[home.group] ?? 0) + 1);
+    out.push({
+      id: `m${String(i + 1).padStart(2, '0')}`,
+      round: Math.ceil(k / 2),
+      group: home.group,
+      homeId: home.id,
+      awayId: away.id,
+      date,
+      time,
+      venue: TOURNAMENT.venueShort,
+      status: 'scheduled',
+      homeScore: 0,
+      awayScore: 0,
+    });
+  }
+  fixturesActive = out.length === 24;
+  return fixturesActive ? out : null;
+}
+
 /** يولّد جدول دور المجموعات (24 مباراة) تلقائياً بعد اكتمال القرعة، وإلا يرجع قائمة فارغة */
 function buildMatches(teams: Team[]): Match[] {
   const groups = GROUP_IDS.map((g) =>
     DRAW[g].map((nick) => teams.find((t) => t.nickname === nick)),
   );
   if (groups.some((list) => list.length !== 4 || list.some((t) => !t))) return [];
+
+  // الجدول الرسمي إن وُجد ومتوافق مع القرعة: الجولة = ترتيب المباراة بين مباريات مجموعتها (مباراتان في كل جولة).
+  // إن لم يتوافق (مثلاً غُيّرت القرعة) نرجع للتوليد التلقائي كي لا يتعطل الموقع، وفحص check-data يكشف ذلك.
+  const official = officialMatches(teams);
+  if (official) return official;
 
   const matches: Match[] = [];
   let counter = 1;
