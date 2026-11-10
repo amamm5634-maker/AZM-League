@@ -83,6 +83,43 @@ export function MatchPage({ matchId }: { matchId: string }) {
             <span className="tname">{away?.name}</span>
           </a>
         </div>
+        {(timeline.length > 0 || hasScore) && (
+          <div className="mh-events" role="region" aria-labelledby="goals-title">
+            <h2 id="goals-title" className="mh-events-title">أحداث المباراة</h2>
+          {timeline.length === 0 ? (
+            <p className="mh-empty">{hasScore ? 'لم تُسجَّل تفاصيل الأحداث بعد.' : 'لم تبدأ المباراة بعد، وتظهر الأهداف والبطاقات هنا فور تسجيلها.'}</p>
+          ) : (
+            <ol className="goal-tl">
+              {timeline.map((e) => {
+                const player = playerById(state, e.playerId);
+                const assister = e.assistId ? playerById(state, e.assistId) : undefined;
+                const team = teamById(state, e.teamId);
+                return (
+                  <li key={e.key} className={e.teamId === match.homeId ? 'home' : 'away'}>
+                    <span className="min" dir="ltr">{e.minute != null ? `${e.minute}'` : '—'}</span>
+                    <TeamBadge team={team} size={26} />
+                    <span>
+                      {e.kind === 'sub' ? (
+                        <>
+                          <span role="img" aria-label="تبديل">🔁 </span>
+                          <a href={`#/player/${e.inId}`}><strong>{playerById(state, e.inId ?? '')?.name}</strong></a>
+                          <small style={{ color: 'var(--muted)' }}> بدل {player?.name}</small>
+                        </>
+                      ) : (
+                        <>
+                          {e.kind !== 'goal' && <span role="img" aria-label={CARD_LABELS[e.kind]}>{CARD_EMOJI[e.kind]} </span>}
+                          <a href={`#/player/${e.playerId}`}><strong>{player?.name}</strong></a>
+                        </>
+                      )}
+                      {assister && <small style={{ color: 'var(--muted)' }}> · صناعة: {assister.name}</small>}
+                    </span>
+                  </li>
+                );
+              })}
+            </ol>
+          )}
+          </div>
+        )}
         <div className="match-meta">
           <span><Icon name="calendar" /> {formatArabicDate(match.date)}</span>
           <span><Icon name="clock" /> {match.time}</span>
@@ -118,42 +155,6 @@ export function MatchPage({ matchId }: { matchId: string }) {
           </section>
         );
       })()}
-
-      <section className="card section" aria-labelledby="goals-title">
-        <h2 id="goals-title" style={{ fontSize: '1.3rem', color: 'var(--head)', marginBottom: 10 }}>أحداث المباراة</h2>
-        {timeline.length === 0 ? (
-          <p style={{ color: 'var(--muted)' }}>{hasScore ? 'لم تُسجَّل تفاصيل الأحداث بعد.' : 'لم تبدأ المباراة بعد، وتظهر الأهداف والبطاقات هنا فور تسجيلها.'}</p>
-        ) : (
-          <ol className="goal-tl">
-            {timeline.map((e) => {
-              const player = playerById(state, e.playerId);
-              const assister = e.assistId ? playerById(state, e.assistId) : undefined;
-              const team = teamById(state, e.teamId);
-              return (
-                <li key={e.key} className={e.teamId === match.homeId ? 'home' : 'away'}>
-                  <span className="min" dir="ltr">{e.minute != null ? `${e.minute}'` : '—'}</span>
-                  <TeamBadge team={team} size={26} />
-                  <span>
-                    {e.kind === 'sub' ? (
-                      <>
-                        <span role="img" aria-label="تبديل">🔁 </span>
-                        <a href={`#/player/${e.inId}`}><strong>{playerById(state, e.inId ?? '')?.name}</strong></a>
-                        <small style={{ color: 'var(--muted)' }}> بدل {player?.name}</small>
-                      </>
-                    ) : (
-                      <>
-                        {e.kind !== 'goal' && <span role="img" aria-label={CARD_LABELS[e.kind]}>{CARD_EMOJI[e.kind]} </span>}
-                        <a href={`#/player/${e.playerId}`}><strong>{player?.name}</strong></a>
-                      </>
-                    )}
-                    {assister && <small style={{ color: 'var(--muted)' }}> · صناعة: {assister.name}</small>}
-                  </span>
-                </li>
-              );
-            })}
-          </ol>
-        )}
-      </section>
 
       {motm && (
         <section className="card section motm-card" aria-label="رجل المباراة">

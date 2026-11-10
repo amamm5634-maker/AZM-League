@@ -332,6 +332,7 @@ td.num-hi { font-family: var(--font-display); font-size: 1.25rem; color: var(--l
 .legend { color: var(--muted); font-size: 0.85rem; margin-top: 10px; display: flex; align-items: center; gap: 8px; }
 .legend i { width: 4px; height: 16px; background: var(--lime); display: inline-block; border-radius: 2px; }
 .standings-grid, .groups-grid, .teams-grid { display: grid; gap: 14px; }
+.standings-grid > *, .groups-grid > *, .teams-grid > * { min-width: 0; }
 .standings-grid h2 { font-size: 1.3rem; margin-bottom: 8px; }
 .mini-table .team-cell { min-width: 140px; }
 .group-card h3 { color: var(--head); font-size: 1.35rem; margin-bottom: 8px; padding-bottom: 6px; border-bottom: 2px solid var(--lime); }
@@ -733,3 +734,18 @@ a.sponsor:hover { background: rgba(255, 255, 255, 0.12); transform: translateY(-
 .dev-ad { border-color: color-mix(in srgb, var(--lime) 45%, var(--line)); }
 .dev-ad p { margin: 0 0 12px; line-height: 1.8; }
 .dev-ad .btn { display: inline-flex; gap: 8px; align-items: center; }
+
+/* جدول الترتيب على الموبايل: يظهر كاملاً (بما فيه عمود النقاط) بدون تمرير جانبي */
+@media (max-width: 430px) {
+  .table-wrap table { font-size: 0.78rem; }
+  .table-wrap th, .table-wrap td { padding: 9px 2px; }
+  .table-wrap td.team-cell, .table-wrap th.team-cell { min-width: 0; padding-inline: 4px; white-space: normal; }
+  .table-wrap .team-line { gap: 5px; font-size: 0.78rem; line-height: 1.25; }
+  .table-wrap .team-line > :first-child { width: 22px !important; height: 22px !important; flex: none; }
+  .table-wrap td.pts, .table-wrap td.num-hi { font-size: 1.05rem; }
+}
+
+/* أحداث المباراة داخل بطاقة المباراة العلوية (بين الفريقين وسطر التاريخ) */
+.mh-events { margin: 14px 12px 4px; padding-top: 12px; border-top: 1px dashed var(--line); text-align: start; }
+.mh-events-title { font-size: 1rem; color: var(--head); margin: 0 0 8px; }
+.mh-empty { color: var(--muted); font-size: 0.9rem; margin: 0; }
