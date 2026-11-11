@@ -12,8 +12,8 @@ import { FIXTURES } from './fixtures';
 const COLLEGES: { nickname: string; name: string; short: string; color: string; logo?: string }[] = [
   { nickname: 'هندسة', name: 'كلية الهندسة', short: 'هن', color: '#1d4ed8' },
   { nickname: 'جيولوجيا', name: 'كلية الجيولوجيا', short: 'جيو', color: '#92400e' },
-  // فريق واحد من كليتين (المختبرات والتمريض). ترتيب هذه القائمة يحدد معرّفات الفرق t01..t16 فلا تغيّره بعد بدء الدوري
-  { nickname: 'مختبرات وتمريض', name: 'فريق المختبرات والتمريض', short: 'مخت', color: '#0e7490' },
+  // فريق المختبرات. ترتيب هذه القائمة يحدد معرّفات الفرق t01..t16 فلا تغيّره بعد بدء الدوري
+  { nickname: 'مختبرات', name: 'فريق المختبرات', short: 'مخت', color: '#0e7490' },
   { nickname: 'إنتاج حيواني', name: 'كلية الإنتاج الحيواني', short: 'إنت', color: '#65a30d' },
   { nickname: 'لغات', name: 'كلية اللغات', short: 'لغ', color: '#7c3aed' },
   { nickname: 'تربية', name: 'كلية التربية', short: 'ترب', color: '#15803d' },
